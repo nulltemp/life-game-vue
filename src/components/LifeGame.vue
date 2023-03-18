@@ -8,6 +8,7 @@
           </div>
         </template>
       </template>
+      <v-btn @click="changeStartStatus">{{ startButtonMessage }}</v-btn>
     </div>
   </div>
 </template>
@@ -27,6 +28,9 @@ const dataMap = ref([
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ])
+
+const isStarted = ref(false)
+const startButtonMessage = ref("start")
 
 const count = (i: number, j: number) => {
   var count = 0
@@ -77,11 +81,19 @@ const update = () => {
   dataMap.value = newDataMap
 
   setTimeout(() => {
-    update()
+    if (isStarted.value) {
+      update()
+    }
   }, 1000)
 }
 
-update()
+const changeStartStatus = () => {
+  isStarted.value = !isStarted.value
+  startButtonMessage.value = isStarted.value ? "stop" : "start"
+  if (isStarted.value) {
+    update()
+  }
+}
 </script>
 
 <style scoped>

@@ -1,9 +1,9 @@
 <template>
   <div>
     <div class="map">
-      <template v-for="(dataList, index) in dataMap" :key="index">
-        <template v-for="(data, index) in dataList" :key="index">
-          <div class="box">
+      <template v-for="(dataList, i) in dataMap" :key="i">
+        <template v-for="(data, j) in dataList" :key="j">
+          <div class="box" @click="changeDataMapValue(i, j)">
             {{ data }}
           </div>
         </template>
@@ -28,6 +28,10 @@ const dataMap = ref([
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ])
+
+const changeDataMapValue = (i: number, j: number) => {
+  dataMap.value[i][j] = dataMap.value[i][j] === 1 ? 0 : 1
+}
 
 const isStarted = ref(false)
 const startButtonMessage = ref("start")

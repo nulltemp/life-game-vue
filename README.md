@@ -1,6 +1,23 @@
-# life-game-vue
+# Conway's Game of Life - Vue.js Implementation
 
-This template should help get you started developing with Vue 3 in Vite.
+A modern implementation of Conway's Game of Life using Vue 3, Vuetify, and TypeScript. This interactive web application allows users to simulate the classic cellular automaton with a clean, responsive interface.
+
+## Features
+
+- **Interactive Grid**: Click cells to toggle their state (alive/dead)
+- **Dynamic Resizing**: Adjust grid height and width in real-time
+- **Simulation Controls**: Start/stop the evolution with customizable generation intervals
+- **Responsive Design**: Built with Vuetify for a modern Material Design UI
+- **TypeScript Support**: Full type safety with Vue 3 Composition API
+- **Testing Suite**: Unit tests with Vitest and E2E tests with Cypress
+
+## How to Play
+
+1. Click on grid cells to set initial living cells (blue = alive, white = dead)
+2. Adjust grid dimensions using the Height and Width inputs
+3. Set the generation interval speed (0.1s to 1.0s)
+4. Click "Start" to begin the simulation
+5. Click "Stop" to pause the evolution
 
 ## Recommended IDE Setup
 
@@ -13,8 +30,8 @@ TypeScript cannot handle type information for `.vue` imports by default, so we r
 If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
 
 1. Disable the built-in TypeScript Extension
-    1) Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-    2) Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
+   1. Run `Extensions: Show Built-in Extensions` from VSCode's command palette
+   2. Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
 2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
 
 ## Customize configuration

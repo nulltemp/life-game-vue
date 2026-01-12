@@ -4,10 +4,14 @@ import Note from "./components/Note.vue"
 </script>
 
 <template>
-  <main>
-    <LifeGame />
-    <Note />
-  </main>
+  <v-app>
+    <v-main>
+      <v-container>
+        <LifeGame />
+        <Note />
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
 <style scoped></style>

@@ -1,19 +1,59 @@
 <template>
-  <div>
-    <div class="map">
-      <template v-for="(dataList, i) in dataMap" :key="i">
-        <template v-for="(data, j) in dataList" :key="j">
-          <div class="box" @click="changeDataMapValue(i, j)" :class="data === 1 ? 'live' : 'death'">
-          </div>
+  <v-card class="pa-4 mb-4">
+    <v-card-title>Conway's Game of Life</v-card-title>
+    <v-card-text>
+      <div class="map mb-4">
+        <template v-for="(dataList, i) in dataMap" :key="i">
+          <template v-for="(data, j) in dataList" :key="j">
+            <div class="box" @click="changeDataMapValue(i, j)" :class="data === 1 ? 'live' : 'death'">
+            </div>
+          </template>
         </template>
-      </template>
-    </div>
-    <div>
-      <v-text-field input v-model="height" @focus="stopStatus()" label="height" @change="changeDataMapSize()"/>
-      <v-text-field input v-model="width" @focus="stopStatus()" label="width" @change="changeDataMapSize()"/>
-    </div>
-    <v-btn @click="changeStartStatus">{{ startButtonMessage }}</v-btn>
-  </div>
+      </div>
+      <v-row>
+        <v-col cols="12" md="6">
+          <v-text-field
+            v-model="height"
+            @focus="stopStatus()"
+            label="Height"
+            type="number"
+            @change="changeDataMapSize()"
+            variant="outlined"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-text-field
+            v-model="width"
+            @focus="stopStatus()"
+            label="Width"
+            type="number"
+            @change="changeDataMapSize()"
+            variant="outlined"
+          />
+        </v-col>
+      </v-row>
+      <div class="mb-4">
+        <label for="interval-slider">Generation Interval: {{ (interval / 1000).toFixed(1) }}s</label>
+        <v-slider
+          id="interval-slider"
+          v-model="interval"
+          @input="stopStatus()"
+          :min="100"
+          :max="1000"
+          :step="100"
+          thumb-label
+        />
+      </div>
+      <v-btn
+        @click="changeStartStatus"
+        :color="isStarted ? 'red' : 'primary'"
+        size="large"
+        block
+      >
+        {{ startButtonMessage }}
+      </v-btn>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script setup lang="ts">
@@ -34,6 +74,7 @@ const dataMap = ref([
 
 const width = ref(10)
 const height = ref(10)
+const interval = ref(1000) // in milliseconds
 
 const changeDataMapValue = (i: number, j: number) => {
   dataMap.value[i][j] = dataMap.value[i][j] === 1 ? 0 : 1
@@ -124,7 +165,7 @@ const update = () => {
     if (isStarted.value) {
       update()
     }
-  }, 1000)
+  }, interval.value)
 }
 
 const changeStartStatus = () => {
@@ -147,18 +188,27 @@ const stopStatus = () => {
 .map {
   display: grid;
   grid-template-columns: repeat(v-bind(width), 1fr);
+  gap: 0px;
+  max-width: 500px;
+  margin: 0 auto;
 }
 
 .box {
-  border: 1px solid #000;
-  height: 1em;
+  border: 1px solid #ccc;
+  height: 20px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.box:hover {
+  opacity: 0.8;
 }
 
 .live {
-  background: #000;
+  background: #1976d2;
 }
 
 .death {
-  background: #FFF;
+  background: #fff;
 }
 </style>

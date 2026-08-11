@@ -17,6 +17,8 @@
             @focus="stopStatus()"
             label="Height"
             type="number"
+            :min="MIN_SIZE"
+            :max="MAX_SIZE"
             @change="changeDataMapSize()"
             variant="outlined"
           />
@@ -27,6 +29,8 @@
             @focus="stopStatus()"
             label="Width"
             type="number"
+            :min="MIN_SIZE"
+            :max="MAX_SIZE"
             @change="changeDataMapSize()"
             variant="outlined"
           />
@@ -76,11 +80,24 @@ const width = ref(10)
 const height = ref(10)
 const interval = ref(1000) // in milliseconds
 
+const MIN_SIZE = 1
+const MAX_SIZE = 100
+
+const clampSize = (value: number): number => {
+  if (!Number.isFinite(value)) {
+    return MIN_SIZE
+  }
+  return Math.min(Math.max(Math.trunc(value), MIN_SIZE), MAX_SIZE)
+}
+
 const changeDataMapValue = (i: number, j: number) => {
   dataMap.value[i][j] = dataMap.value[i][j] === 1 ? 0 : 1
 }
 
 const changeDataMapSize = () => {
+  width.value = clampSize(Number(width.value))
+  height.value = clampSize(Number(height.value))
+
   if (width.value !== dataMap.value[0].length) {
     for (let i = 0; i < dataMap.value.length; i++) {
       if (width.value < dataMap.value[i].length) {
@@ -112,6 +129,7 @@ const changeDataMapSize = () => {
 
 const isStarted = ref(false)
 const startButtonMessage = ref("start")
+let timerId: ReturnType<typeof setTimeout> | null = null
 
 const count = (i: number, j: number) => {
   var count = 0
@@ -161,22 +179,26 @@ const update = () => {
 
   dataMap.value = newDataMap
 
-  setTimeout(() => {
-    if (isStarted.value) {
-      update()
-    }
-  }, interval.value)
+  timerId = setTimeout(update, interval.value)
 }
 
 const changeStartStatus = () => {
   isStarted.value = !isStarted.value
   startButtonMessage.value = isStarted.value ? "stop" : "start"
+  if (timerId !== null) {
+    clearTimeout(timerId)
+    timerId = null
+  }
   if (isStarted.value) {
     update()
   }
 }
 
 const stopStatus = () => {
+  if (timerId !== null) {
+    clearTimeout(timerId)
+    timerId = null
+  }
   if (isStarted.value) {
     isStarted.value = false
     startButtonMessage.value = "start"

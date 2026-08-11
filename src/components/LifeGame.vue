@@ -2,11 +2,14 @@
   <v-card class="pa-4 mb-4">
     <v-card-title>Conway's Game of Life</v-card-title>
     <v-card-text>
-      <div class="map mb-4">
+      <div class="map">
         <template v-for="(dataList, i) in dataMap" :key="i">
           <template v-for="(data, j) in dataList" :key="j">
-            <div class="box" @click="changeDataMapValue(i, j)" :class="data === 1 ? 'live' : 'death'">
-            </div>
+            <div
+              class="box"
+              @click="changeDataMapValue(i, j)"
+              :class="data === 1 ? 'live' : 'death'"
+            ></div>
           </template>
         </template>
       </div>
@@ -37,7 +40,9 @@
         </v-col>
       </v-row>
       <div class="mb-4">
-        <label for="interval-slider">Generation Interval: {{ (interval / 1000).toFixed(1) }}s</label>
+        <label for="interval-slider"
+          >Generation Interval: {{ (interval / 1000).toFixed(1) }}s</label
+        >
         <v-slider
           id="interval-slider"
           v-model="interval"
@@ -61,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref } from 'vue'
 
 const dataMap = ref([
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -128,16 +133,16 @@ const changeDataMapSize = () => {
 }
 
 const isStarted = ref(false)
-const startButtonMessage = ref("start")
+const startButtonMessage = ref('start')
 let timerId: ReturnType<typeof setTimeout> | null = null
 
 const count = (i: number, j: number) => {
-  var count = 0
-  for (var k = i - 1; k <= i + 1; k++) {
+  let count = 0
+  for (let k = i - 1; k <= i + 1; k++) {
     if (k < 0 || k >= dataMap.value.length) {
       continue
     }
-    for (var l = j - 1; l <= j + 1; l++) {
+    for (let l = j - 1; l <= j + 1; l++) {
       if (l < 0 || l >= dataMap.value[0].length || (k == i && l == j)) {
         continue
       }
@@ -149,9 +154,9 @@ const count = (i: number, j: number) => {
 
 const update = () => {
   const newDataMap: number[][] = []
-  for (var i = 0; i < dataMap.value.length; i++) {
+  for (let i = 0; i < dataMap.value.length; i++) {
     newDataMap[i] = []
-    for (var j = 0; j < dataMap.value[0].length; j++) {
+    for (let j = 0; j < dataMap.value[0].length; j++) {
       switch (dataMap.value[i][j]) {
         case 0: {
           const lifeCount = count(i, j)
@@ -172,7 +177,7 @@ const update = () => {
           break
         }
         default:
-          console.error("error")
+          console.error('error')
       }
     }
   }
@@ -184,7 +189,7 @@ const update = () => {
 
 const changeStartStatus = () => {
   isStarted.value = !isStarted.value
-  startButtonMessage.value = isStarted.value ? "stop" : "start"
+  startButtonMessage.value = isStarted.value ? 'stop' : 'start'
   if (timerId !== null) {
     clearTimeout(timerId)
     timerId = null
@@ -201,7 +206,7 @@ const stopStatus = () => {
   }
   if (isStarted.value) {
     isStarted.value = false
-    startButtonMessage.value = "start"
+    startButtonMessage.value = 'start'
   }
 }
 </script>
@@ -212,7 +217,7 @@ const stopStatus = () => {
   grid-template-columns: repeat(v-bind(width), 1fr);
   gap: 0px;
   max-width: 500px;
-  margin: 0 auto;
+  margin: 0 auto 24px;
 }
 
 .box {

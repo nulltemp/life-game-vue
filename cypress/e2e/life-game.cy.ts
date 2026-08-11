@@ -28,11 +28,13 @@ describe('Life Game E2E Tests', () => {
 
   it('should change grid size', () => {
     // Change height to 5
-    cy.get('input[label="Height"]').clear().type('5')
+    cy.get('input[label="Height"]').clear()
+    cy.get('input[label="Height"]').type('5')
     cy.get('.box').should('have.length', 50) // 5x10 grid
 
     // Change width to 5
-    cy.get('input[label="Width"]').clear().type('5')
+    cy.get('input[label="Width"]').clear()
+    cy.get('input[label="Width"]').type('5')
     cy.get('.box').should('have.length', 25) // 5x5 grid
   })
 

@@ -13,8 +13,6 @@ describe('LifeGame.vue', () => {
     expect(LifeGame).toBeDefined()
   })
 
-
-
   it('counts neighbors correctly', () => {
     // Create a component instance manually for testing methods
     const component = {
@@ -24,12 +22,12 @@ describe('LifeGame.vue', () => {
         [0, 0, 0],
       ],
       count(i: number, j: number) {
-        var count = 0
-        for (var k = i - 1; k <= i + 1; k++) {
+        let count = 0
+        for (let k = i - 1; k <= i + 1; k++) {
           if (k < 0 || k >= this.dataMap.length) {
             continue
           }
-          for (var l = j - 1; l <= j + 1; l++) {
+          for (let l = j - 1; l <= j + 1; l++) {
             if (l < 0 || l >= this.dataMap[0].length || (k == i && l == j)) {
               continue
             }
@@ -37,7 +35,7 @@ describe('LifeGame.vue', () => {
           }
         }
         return count
-      }
+      },
     }
 
     expect(component.count(1, 1)).toBe(0) // Center cell has no neighbors
@@ -60,12 +58,12 @@ describe('LifeGame.vue', () => {
         [0, 0, 0, 0],
       ],
       count(i: number, j: number) {
-        var count = 0
-        for (var k = i - 1; k <= i + 1; k++) {
+        let count = 0
+        for (let k = i - 1; k <= i + 1; k++) {
           if (k < 0 || k >= this.dataMap.length) {
             continue
           }
-          for (var l = j - 1; l <= j + 1; l++) {
+          for (let l = j - 1; l <= j + 1; l++) {
             if (l < 0 || l >= this.dataMap[0].length || (k == i && l == j)) {
               continue
             }
@@ -76,9 +74,9 @@ describe('LifeGame.vue', () => {
       },
       update() {
         const newDataMap: number[][] = []
-        for (var i = 0; i < this.dataMap.length; i++) {
+        for (let i = 0; i < this.dataMap.length; i++) {
           newDataMap[i] = []
-          for (var j = 0; j < this.dataMap[0].length; j++) {
+          for (let j = 0; j < this.dataMap[0].length; j++) {
             switch (this.dataMap[i][j]) {
               case 0: {
                 const lifeCount = this.count(i, j)
@@ -99,13 +97,13 @@ describe('LifeGame.vue', () => {
                 break
               }
               default:
-                console.error("error")
+                console.error('error')
             }
           }
         }
 
         this.dataMap = newDataMap
-      }
+      },
     }
 
     // Block pattern (stable) - should remain the same

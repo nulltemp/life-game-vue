@@ -1,3 +1,5 @@
+https://life-game-vue.nulltemp.com/
+
 # Conway's Game of Life - Vue.js Implementation
 
 A modern implementation of Conway's Game of Life using Vue 3, Vuetify, and TypeScript. This interactive web application allows users to simulate the classic cellular automaton with a clean, responsive interface.

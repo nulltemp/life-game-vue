@@ -58,9 +58,23 @@
         :color="isStarted ? 'red' : 'primary'"
         size="large"
         block
+        class="mb-2"
       >
         {{ startButtonMessage }}
       </v-btn>
+      <v-row dense>
+        <v-col cols="6">
+          <v-btn @click="randomize" size="large" variant="outlined" block>
+            Random
+          </v-btn>
+        </v-col>
+        <v-col cols="6">
+          <v-btn @click="clear" size="large" variant="outlined" block>
+            Clear
+          </v-btn>
+        </v-col>
+      </v-row>
+      <div class="text-center mt-2">Generation: {{ generation }}</div>
     </v-card-text>
   </v-card>
 </template>
@@ -134,6 +148,7 @@ const changeDataMapSize = () => {
 
 const isStarted = ref(false)
 const startButtonMessage = ref('start')
+const generation = ref(0)
 let timerId: ReturnType<typeof setTimeout> | null = null
 
 const count = (i: number, j: number) => {
@@ -183,6 +198,7 @@ const update = () => {
   }
 
   dataMap.value = newDataMap
+  generation.value++
 
   timerId = setTimeout(update, interval.value)
 }
@@ -208,6 +224,26 @@ const stopStatus = () => {
     isStarted.value = false
     startButtonMessage.value = 'start'
   }
+}
+
+const randomize = () => {
+  stopStatus()
+  for (let i = 0; i < dataMap.value.length; i++) {
+    for (let j = 0; j < dataMap.value[i].length; j++) {
+      dataMap.value[i][j] = Math.random() < 0.5 ? 1 : 0
+    }
+  }
+  generation.value = 0
+}
+
+const clear = () => {
+  stopStatus()
+  for (let i = 0; i < dataMap.value.length; i++) {
+    for (let j = 0; j < dataMap.value[i].length; j++) {
+      dataMap.value[i][j] = 0
+    }
+  }
+  generation.value = 0
 }
 </script>
 

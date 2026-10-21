@@ -4,15 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-This project uses `npm` (see scripts in package.json) but `yarn.lock` is present — check which lockfile is current before adding dependencies.
+This project uses `npm` (`package-lock.json` is the only lockfile).
 
 - `npm run dev` — start Vite dev server
 - `npm run build` — type-check (`vue-tsc`) then production build
 - `npm run test:unit` — run Vitest unit tests (jsdom environment, rooted at `src/`)
-- `npm run test:unit -- src/components/__tests__/LifeGame.test.ts` — run a single unit test file
+- `npm run test:unit -- src/utils/__tests__/life.test.ts` — run a single unit test file
 - `npm run test:e2e:dev` — run Cypress against the Vite dev server (interactive, opens Cypress UI)
-- `npm run test:e2e` — build, then run Cypress headless against the preview server (used in CI)
-- `npm run lint` — ESLint with `--fix` over `.vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts`
+- `npm run test:e2e` — run Cypress headless against the preview server (run `npm run build` first)
+- `npm run lint` — `eslint . --fix` (flat config in `eslint.config.mjs`, includes Prettier)
 - `npm run type-check` — `vue-tsc --noEmit` only
 
 ## Architecture
@@ -21,7 +21,8 @@ This is a small single-page Vue 3 + Vuetify + TypeScript app implementing Conway
 
 - `src/main.ts` — app entry; registers Pinia and Vuetify (full `components`/`directives` import, not tree-shaken).
 - `src/App.vue` — root component; just composes `LifeGame` and `Note`.
-- `src/components/LifeGame.vue` — the entire game: holds the grid state (`dataMap`, a `number[][]` of 0/1), grid resize logic (`changeDataMapSize`), neighbor counting (`count`), the generation step (`update`), and simulation start/stop (`changeStartStatus`/`stopStatus`). The simulation loop is a self-rescheduling `setTimeout` inside `update()` (not `setInterval`), gated by the `isStarted` ref. The timer handle is held in a module-scoped `timerId` and explicitly `clearTimeout`'d in `changeStartStatus`/`stopStatus` before any (re)start, to avoid duplicate concurrent loops from rapid stop/start toggling.
+- `src/utils/life.ts` — pure Game of Life rules: `countNeighbors(grid, i, j)` and `nextGeneration(grid)` (returns a new grid, does not mutate the input). Cells outside the grid count as dead (no wraparound).
+- `src/components/LifeGame.vue` — the game UI and state: holds the grid state (`dataMap`, a `number[][]` of 0/1), grid resize logic (`changeDataMapSize`), the generation step (`update`, which calls `nextGeneration`), and simulation start/stop (`changeStartStatus`/`stopStatus`). The simulation loop is a self-rescheduling `setTimeout` inside `update()` (not `setInterval`), gated by the `isStarted` ref. The timer handle is held in a module-scoped `timerId` and explicitly `clearTimeout`'d in `changeStartStatus`/`stopStatus` before any (re)start, to avoid duplicate concurrent loops from rapid stop/start toggling.
 - `src/components/Note.vue` — static GitHub link card.
 - `@` path alias resolves to `src/` (configured in `vite.config.ts`).
 
@@ -34,5 +35,13 @@ This is a small single-page Vue 3 + Vuetify + TypeScript app implementing Conway
 
 ### Testing structure
 
-- Unit tests (`src/components/__tests__/*.test.ts`, Vitest) currently duplicate the `count`/`update` logic in plain object literals rather than mounting the component and exercising its real methods — when changing grid/simulation logic in `LifeGame.vue`, keep these duplicated implementations in sync or refactor them to test the component directly.
+- Unit tests (Vitest) exercise the real code:
+  - `src/utils/__tests__/life.test.ts` tests the rules in `src/utils/life.ts` with known patterns (block, blinker, glider).
+  - `src/components/__tests__/LifeGame.test.ts` mounts `LifeGame.vue` with Vuetify via `@vue/test-utils` and uses fake timers to drive the simulation loop. It stubs `ResizeObserver` (missing in jsdom), and `vite.config.ts` sets `test.server.deps.inline: ['vuetify']` so Vuetify's `.css` imports load under Vitest.
+  - Put new grid/rule logic in `src/utils/life.ts` and test it there; keep component tests for UI wiring.
 - E2E tests (`cypress/e2e/*.cy.ts`) drive the real UI: grid cell count is asserted via `.box` element count, cell state via `.death`/`.live` classes, and the Height/Width inputs via `input[label="..."]` selectors (Vuetify renders the label as an attribute on the input).
+
+## Deployment and CI
+
+- The app is hosted on Cloudflare (https://life-game-vue.nulltemp.com/); the production build is `npm run build` → `dist/`.
+- There is no CI: GitHub Actions is not used and there is no `.github/workflows`. Run `npm run lint`, `npm run type-check` and `npm run test:unit` locally before pushing, since nothing runs them automatically.

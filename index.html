@@ -13,10 +13,51 @@
     <meta charset="UTF-8">
     <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>life-game-vue</title>
+    <title>Conway's Game of Life - Play Online in Your Browser | life-game-vue</title>
+    <meta name="description" content="Play Conway's Game of Life online for free. Draw cells, randomize the board, resize the grid up to 100×100 and watch patterns like gliders and blinkers evolve generation by generation.">
+    <meta name="theme-color" content="#1976d2">
+    <link rel="canonical" href="https://life-game-vue.nulltemp.com/">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="life-game-vue">
+    <meta property="og:title" content="Conway's Game of Life - Play Online in Your Browser">
+    <meta property="og:description" content="Play Conway's Game of Life online for free. Draw cells, randomize the board and watch patterns evolve.">
+    <meta property="og:url" content="https://life-game-vue.nulltemp.com/">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Conway's Game of Life - Play Online in Your Browser">
+    <meta name="twitter:description" content="Play Conway's Game of Life online for free. Draw cells, randomize the board and watch patterns evolve.">
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Conway's Game of Life",
+        "alternateName": "life-game-vue",
+        "url": "https://life-game-vue.nulltemp.com/",
+        "description": "An interactive, browser-based simulator of Conway's Game of Life built with Vue 3 and Vuetify.",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "codeRepository": "https://github.com/nulltemp/life-game-vue"
+      }
+    </script>
   </head>
   <body>
     <div id="app"></div>
+    <noscript>
+      <h1>Conway's Game of Life</h1>
+      <p>
+        An interactive simulator of Conway's Game of Life. Please enable JavaScript to play.
+        Source code: <a href="https://github.com/nulltemp/life-game-vue">github.com/nulltemp/life-game-vue</a>
+      </p>
+    </noscript>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

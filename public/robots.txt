@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://life-game-vue.nulltemp.com/sitemap.xml

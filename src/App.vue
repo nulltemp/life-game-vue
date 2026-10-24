@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import LifeGame from './components/LifeGame.vue'
+import AboutGame from './components/AboutGame.vue'
 import Note from './components/Note.vue'
 </script>
 
@@ -8,6 +9,7 @@ import Note from './components/Note.vue'
     <v-main>
       <v-container>
         <LifeGame />
+        <AboutGame />
         <Note />
       </v-container>
     </v-main>

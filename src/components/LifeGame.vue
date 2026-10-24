@@ -1,6 +1,6 @@
 <template>
   <v-card class="pa-4 mb-4">
-    <v-card-title>Conway's Game of Life</v-card-title>
+    <v-card-title tag="h1">Conway's Game of Life</v-card-title>
     <v-card-text>
       <div class="map">
         <template v-for="(dataList, i) in dataMap" :key="i">

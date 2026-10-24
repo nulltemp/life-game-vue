@@ -27,14 +27,19 @@ describe('Life Game E2E Tests', () => {
   })
 
   it('should change grid size', () => {
-    // Change height to 5
-    cy.get('input[label="Height"]').clear()
-    cy.get('input[label="Height"]').type('5')
+    // Vuetify doesn't put the label on the <input>, so find it via its field's label text
+    // Change height to 5 (the grid resizes on the input's change event, fired on blur)
+    cy.contains('.v-text-field', 'Height').find('input').as('height')
+    cy.get('@height').clear()
+    cy.get('@height').type('5')
+    cy.get('@height').blur()
     cy.get('.box').should('have.length', 50) // 5x10 grid
 
     // Change width to 5
-    cy.get('input[label="Width"]').clear()
-    cy.get('input[label="Width"]').type('5')
+    cy.contains('.v-text-field', 'Width').find('input').as('width')
+    cy.get('@width').clear()
+    cy.get('@width').type('5')
+    cy.get('@width').blur()
     cy.get('.box').should('have.length', 25) // 5x5 grid
   })
 

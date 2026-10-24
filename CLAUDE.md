@@ -39,7 +39,8 @@ This is a small single-page Vue 3 + Vuetify + TypeScript app implementing Conway
   - `src/utils/__tests__/life.test.ts` tests the rules in `src/utils/life.ts` with known patterns (block, blinker, glider).
   - `src/components/__tests__/LifeGame.test.ts` mounts `LifeGame.vue` with Vuetify via `@vue/test-utils` and uses fake timers to drive the simulation loop. It stubs `ResizeObserver` (missing in jsdom), and `vite.config.ts` sets `test.server.deps.inline: ['vuetify']` so Vuetify's `.css` imports load under Vitest.
   - Put new grid/rule logic in `src/utils/life.ts` and test it there; keep component tests for UI wiring.
-- E2E tests (`cypress/e2e/*.cy.ts`) drive the real UI: grid cell count is asserted via `.box` element count, cell state via `.death`/`.live` classes, and the Height/Width inputs via `input[label="..."]` selectors (Vuetify renders the label as an attribute on the input).
+- E2E tests (`cypress/e2e/*.cy.ts`) drive the real UI: grid cell count is asserted via `.box` element count, cell state via `.death`/`.live` classes, and the Height/Width inputs via `cy.contains('.v-text-field', '<label>').find('input')` (Vuetify does not put the label on the `<input>`). Grid resize fires on the input's `change` event, so tests `.blur()` after typing.
+- `test:e2e` / `test:e2e:dev` bind the server to `127.0.0.1:4173` explicitly (matching `baseUrl` in `cypress.config.ts`); on Windows `localhost` may resolve to `::1` and `start-server-and-test` would time out. If Cypress fails with `bad option: --smoke-test`, the shell has `ELECTRON_RUN_AS_NODE` set (e.g. inherited from VS Code) — unset it.
 
 ## Deployment and CI
 

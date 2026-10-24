@@ -8,6 +8,11 @@
       >
         View on GitHub
       </v-btn>
+      <div class="mt-4">
+        <a href="https://nulltemp.com/privacy/" target="_blank" rel="noopener">
+          Privacy Policy
+        </a>
+      </div>
     </v-card-text>
   </v-card>
 </template>

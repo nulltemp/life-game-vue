@@ -46,3 +46,8 @@ This is a small single-page Vue 3 + Vuetify + TypeScript app implementing Conway
 
 - The app is hosted on Cloudflare (https://life-game-vue.nulltemp.com/); the production build is `npm run build` → `dist/`.
 - There is no CI: GitHub Actions is not used and there is no `.github/workflows`. Run `npm run lint`, `npm run type-check` and `npm run test:unit` locally before pushing, since nothing runs them automatically.
+
+## Issue tracking
+
+- Issues (bugs, improvement ideas, open questions) are tracked in `docs/issues.md`, **not** GitHub Issues. When asked to record an issue (e.g. 「課題を記録して」), add it to `docs/issues.md` following the format described at the top of that file; do not create a GitHub issue.
+- When an issue is resolved, move it to the 「対応済み」 section with the date and commit/PR.

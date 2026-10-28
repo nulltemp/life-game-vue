@@ -2,7 +2,13 @@
   <v-card class="pa-4 mb-4">
     <v-card-title tag="h1">Conway's Game of Life</v-card-title>
     <v-card-text>
-      <div class="map">
+      <div
+        class="map"
+        :style="{
+          gridTemplateColumns: `repeat(${columns}, 1fr)`,
+          maxWidth: `${mapMaxWidth}px`,
+        }"
+      >
         <template v-for="(dataList, i) in dataMap" :key="i">
           <template v-for="(data, j) in dataList" :key="j">
             <div
@@ -46,7 +52,6 @@
         <v-slider
           id="interval-slider"
           v-model="interval"
-          @input="stopStatus()"
           :min="100"
           :max="1000"
           :step="100"
@@ -80,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { nextGeneration } from '@/utils/life'
 
 const dataMap = ref([
@@ -102,6 +107,17 @@ const interval = ref(1000) // in milliseconds
 
 const MIN_SIZE = 1
 const MAX_SIZE = 100
+
+// Grid columns follow the actual cell data, not the Width input, so the layout
+// stays intact while the user is still typing (the grid resizes on change)
+const columns = computed(() => dataMap.value[0]?.length ?? MIN_SIZE)
+// Cells are square, so shrink the board's width for tall grids to keep the
+// whole board within MAP_SIZE x MAP_SIZE pixels
+const MAP_SIZE = 500
+const mapMaxWidth = computed(
+  () =>
+    (MAP_SIZE * columns.value) / Math.max(columns.value, dataMap.value.length),
+)
 
 const clampSize = (value: number): number => {
   if (!Number.isFinite(value)) {
@@ -206,15 +222,13 @@ const clear = () => {
 <style scoped>
 .map {
   display: grid;
-  grid-template-columns: repeat(v-bind(width), 1fr);
   gap: 0px;
-  max-width: 500px;
   margin: 0 auto 24px;
 }
 
 .box {
   border: 1px solid #ccc;
-  height: 20px;
+  aspect-ratio: 1;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }

@@ -89,4 +89,26 @@ describe('LifeGame.vue', () => {
     expect(liveIndexes(wrapper)).toEqual([])
     expect(wrapper.text()).toContain('Generation: 0')
   })
+
+  it('keeps the grid columns until the Width input is committed', async () => {
+    const wrapper = mountLifeGame()
+    const columns = () =>
+      wrapper.find<HTMLElement>('.map').element.style.gridTemplateColumns
+    const widthInput = wrapper
+      .findAll('.v-text-field')
+      .find((field) => field.text().includes('Width'))!
+      .find('input')
+    expect(columns()).toBe('repeat(10, 1fr)')
+
+    // Typing alone must not reflow the existing cells
+    // (set the value by hand: setValue() also fires change, which commits it)
+    ;(widthInput.element as HTMLInputElement).value = '5'
+    await widthInput.trigger('input')
+    expect(columns()).toBe('repeat(10, 1fr)')
+    expect(wrapper.findAll('.box')).toHaveLength(100)
+
+    await widthInput.trigger('change')
+    expect(columns()).toBe('repeat(5, 1fr)')
+    expect(wrapper.findAll('.box')).toHaveLength(50)
+  })
 })

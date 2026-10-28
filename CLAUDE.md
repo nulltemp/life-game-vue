@@ -20,7 +20,7 @@ This project uses `npm` (`package-lock.json` is the only lockfile).
 This is a small single-page Vue 3 + Vuetify + TypeScript app implementing Conway's Game of Life. Pinia is installed and registered in `src/main.ts` but no store is currently defined — all state lives in component-local `ref`s.
 
 - `src/main.ts` — app entry; registers Pinia and Vuetify (full `components`/`directives` import, not tree-shaken).
-- `src/App.vue` — root component; just composes `LifeGame` and `Note`.
+- `src/App.vue` — root component; just composes `LifeGame`, `AboutGame` and `Note`.
 - `src/utils/life.ts` — pure Game of Life rules: `countNeighbors(grid, i, j)` and `nextGeneration(grid)` (returns a new grid, does not mutate the input). Cells outside the grid count as dead (no wraparound).
 - `src/components/LifeGame.vue` — the game UI and state: holds the grid state (`dataMap`, a `number[][]` of 0/1), grid resize logic (`changeDataMapSize`), the generation step (`update`, which calls `nextGeneration`), and simulation start/stop (`changeStartStatus`/`stopStatus`). The simulation loop is a self-rescheduling `setTimeout` inside `update()` (not `setInterval`), gated by the `isStarted` ref. The timer handle is held in a module-scoped `timerId` and explicitly `clearTimeout`'d in `changeStartStatus`/`stopStatus` before any (re)start, to avoid duplicate concurrent loops from rapid stop/start toggling.
 - `src/components/Note.vue` — static GitHub link card.
@@ -31,7 +31,7 @@ This is a small single-page Vue 3 + Vuetify + TypeScript app implementing Conway
 - `dataMap` is row-major: `dataMap[i][j]` where `i` is row (height), `j` is column (width).
 - Cells are `0` (dead) or `1` (alive), not booleans.
 - Resizing (`changeDataMapSize`) mutates `dataMap` in place via `.length` truncation/extension rather than replacing the array — new cells default to `0`. Height/width are clamped to `[1, 100]` via `clampSize` before use, to guard against `RangeError` on negative sizes and runaway grids on very large ones.
-- Grid CSS columns are driven by `v-bind(width)` in the component's `<style>` block, so the visual column count follows the `width` ref directly.
+- Grid CSS columns are an inline `:style` binding driven by the `columns` computed (`dataMap[0].length`), not the `width` ref, so the layout doesn't reflow while the Width input is still being typed (before `change` resizes `dataMap`). Cells are square via `aspect-ratio: 1`, and the board's `maxWidth` (`mapMaxWidth`) shrinks for tall grids so the whole board fits in 500×500px.
 
 ### Testing structure
 

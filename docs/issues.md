@@ -11,38 +11,6 @@
 
 ## 未対応
 
-### 5. LifeGame.vue のアンマウント時にシミュレーションのタイマーが解除されない
-
-GitHub #5 から移行（2026-10-28 起票）
-
-#### 現象
-`src/components/LifeGame.vue` のシミュレーションは `update()` 内で `setTimeout` を自己再スケジュールしていますが、`onUnmounted` で `clearTimeout(timerId)` していません。
-
-#### 影響
-現状はルートで1回しかマウントされないため実害はありませんが、コンポーネントの再利用時やテストでアンマウントした後もタイマーが走り続けます。
-
-#### 修正案
-```ts
-onUnmounted(() => stopStatus())
-```
-アンマウント後にタイマーが進まないことを確認するテストもあわせて追加する。
-
-### 6. startButtonMessage を isStarted から求める computed にする
-
-GitHub #6 から移行（2026-10-28 起票）
-
-#### 現状
-`src/components/LifeGame.vue` では、ボタンの文言 `startButtonMessage` を `isStarted` とは別の `ref` で持ち、`changeStartStatus` / `stopStatus` の中で両方を手で更新しています。
-
-#### 問題
-同じ状態を二重に管理しているため、今後状態を変える箇所が増えたときに更新漏れで表示がずれるおそれがあります。
-
-#### 修正案
-```ts
-const startButtonMessage = computed(() => (isStarted.value ? 'stop' : 'start'))
-```
-として、手での代入を削除する。
-
 ### 7. バンドルサイズが 500kB を超えている（Vuetify の全 import と未使用の Pinia）
 
 GitHub #7 から移行（2026-10-28 起票）
@@ -155,4 +123,40 @@ GitHub Actions のワークフローがなく、`npm run lint`・`npm run type-c
 
 ## 対応済み
 
-（なし）
+### 5. LifeGame.vue のアンマウント時にシミュレーションのタイマーが解除されない
+
+GitHub #5 から移行（2026-10-28 起票）
+
+#### 現象
+`src/components/LifeGame.vue` のシミュレーションは `update()` 内で `setTimeout` を自己再スケジュールしていますが、`onUnmounted` で `clearTimeout(timerId)` していません。
+
+#### 影響
+現状はルートで1回しかマウントされないため実害はありませんが、コンポーネントの再利用時やテストでアンマウントした後もタイマーが走り続けます。
+
+#### 修正案
+```ts
+onUnmounted(() => stopStatus())
+```
+アンマウント後にタイマーが進まないことを確認するテストもあわせて追加する。
+
+#### 対応
+2026-10-30 対応（コミット 83fa670、ブランチ `claude/elegant-allen-yc1s9d`）
+
+### 6. startButtonMessage を isStarted から求める computed にする
+
+GitHub #6 から移行（2026-10-28 起票）
+
+#### 現状
+`src/components/LifeGame.vue` では、ボタンの文言 `startButtonMessage` を `isStarted` とは別の `ref` で持ち、`changeStartStatus` / `stopStatus` の中で両方を手で更新しています。
+
+#### 問題
+同じ状態を二重に管理しているため、今後状態を変える箇所が増えたときに更新漏れで表示がずれるおそれがあります。
+
+#### 修正案
+```ts
+const startButtonMessage = computed(() => (isStarted.value ? 'stop' : 'start'))
+```
+として、手での代入を削除する。
+
+#### 対応
+2026-10-30 対応（コミット 83fa670、ブランチ `claude/elegant-allen-yc1s9d`）

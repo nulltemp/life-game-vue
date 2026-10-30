@@ -30,7 +30,7 @@ This is a small single-page Vue 3 + Vuetify + TypeScript app implementing Conway
 
 - `dataMap` is row-major: `dataMap[i][j]` where `i` is row (height), `j` is column (width).
 - Cells are `0` (dead) or `1` (alive), not booleans.
-- Resizing (`changeDataMapSize`) mutates `dataMap` in place via `.length` truncation/extension rather than replacing the array — new cells default to `0`. Height/width are clamped to `[1, 100]` via `clampSize` before use, to guard against `RangeError` on negative sizes and runaway grids on very large ones.
+- Resizing (`changeDataMapSize`) mutates `dataMap` in place via `.length` truncation/extension rather than replacing the array — new cells default to `0`. Height/width are clamped to `[1, 100]` via `clampSize` before use, to guard against `RangeError` on negative sizes and runaway grids on very large ones. Blank or invalid input keeps the current size instead of clamping to the minimum, so it can't discard cells.
 - Grid CSS columns are an inline `:style` binding driven by the `columns` computed (`dataMap[0].length`), not the `width` ref, so the layout doesn't reflow while the Width input is still being typed (before `change` resizes `dataMap`). Cells are square via `aspect-ratio: 1`, and the board's `maxWidth` (`mapMaxWidth`) shrinks for tall grids so the whole board fits in 500×500px.
 
 ### Testing structure

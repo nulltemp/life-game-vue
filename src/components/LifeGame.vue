@@ -119,11 +119,14 @@ const mapMaxWidth = computed(
     (MAP_SIZE * columns.value) / Math.max(columns.value, dataMap.value.length),
 )
 
-const clampSize = (value: number): number => {
-  if (!Number.isFinite(value)) {
-    return MIN_SIZE
+// Blank or invalid input keeps the current size: Number('') is 0, which would
+// otherwise clamp to MIN_SIZE and discard the cells outside of it
+const clampSize = (value: number | string, current: number): number => {
+  const size = value === '' ? NaN : Number(value)
+  if (!Number.isFinite(size)) {
+    return current
   }
-  return Math.min(Math.max(Math.trunc(value), MIN_SIZE), MAX_SIZE)
+  return Math.min(Math.max(Math.trunc(size), MIN_SIZE), MAX_SIZE)
 }
 
 const changeDataMapValue = (i: number, j: number) => {
@@ -131,8 +134,8 @@ const changeDataMapValue = (i: number, j: number) => {
 }
 
 const changeDataMapSize = () => {
-  width.value = clampSize(Number(width.value))
-  height.value = clampSize(Number(height.value))
+  width.value = clampSize(width.value, dataMap.value[0].length)
+  height.value = clampSize(height.value, dataMap.value.length)
 
   if (width.value !== dataMap.value[0].length) {
     for (let i = 0; i < dataMap.value.length; i++) {

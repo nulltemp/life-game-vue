@@ -123,4 +123,25 @@ describe('LifeGame.vue', () => {
     expect(columns()).toBe('repeat(5, 1fr)')
     expect(wrapper.findAll('.box')).toHaveLength(50)
   })
+
+  it.each(['Height', 'Width'])(
+    'keeps the grid and restores the size when %s is left blank',
+    async (label) => {
+      const wrapper = mountLifeGame()
+      const input = wrapper
+        .findAll('.v-text-field')
+        .find((field) => field.text().includes(label))!
+        .find('input')
+
+      // Set the value by hand: setValue() fires change in the same tick as input,
+      // so the blank value would never reach the field's props
+      ;(input.element as HTMLInputElement).value = ''
+      await input.trigger('input')
+      await input.trigger('change')
+
+      expect(wrapper.findAll('.box')).toHaveLength(100)
+      expect(liveIndexes(wrapper)).toEqual([12, 23, 31, 32, 33])
+      expect((input.element as HTMLInputElement).value).toBe('10')
+    },
+  )
 })

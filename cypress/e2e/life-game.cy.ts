@@ -43,6 +43,15 @@ describe('Life Game E2E Tests', () => {
     cy.get('.box').should('have.length', 25) // 5x5 grid
   })
 
+  it('should keep the grid when a size input is left blank', () => {
+    cy.contains('.v-text-field', 'Width').find('input').as('width')
+    cy.get('@width').clear()
+    cy.get('@width').blur()
+    cy.get('@width').should('have.value', '10')
+    cy.get('.box').should('have.length', 100)
+    cy.get('.box.live').should('have.length', 5)
+  })
+
   it('should start and stop simulation', () => {
     // Initially button should say "start"
     cy.contains('start').should('be.visible')

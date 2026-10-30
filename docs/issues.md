@@ -191,6 +191,85 @@ Vuetify のテーマ変数を使う。例: `background: rgb(var(--v-theme-primar
 - `countNeighbors` / `nextGeneration` にラップするかどうかの引数を追加し、UI に切り替えスイッチを置く。単体テストも追加する。
 - グライダー、パルサー、グライダー銃などのプリセットを選んで盤面に配置できるようにする（盤面より大きいパターンの扱いは要検討）。
 
+### 21. PC 幅で画面が左半分に寄る
+
+2026-10-30 起票
+
+#### 現象
+幅 1024px 以上の画面で、アプリが左半分にしか表示されない。幅 1024px のとき、`.v-application` の幅は 472.5px だった（手元でビルドした master をブラウザで確認。本番サイトは未確認）。
+
+#### 原因
+`src/assets/main.css` に Vue のテンプレート由来の指定が残っている。`@media (min-width: 1024px)` の `#app { display: grid; grid-template-columns: 1fr 1fr; }` で 2 カラムになり、中身が 1 列目だけに入る。リンクが緑色なのも同じファイルの指定による。
+
+#### 修正案
+`src/main.ts` の `./assets/main.css` の読み込みをやめ、`main.css` と `base.css` を削除する。`base.css` の `*` への指定（`margin: 0` など）もなくなるので、見た目が変わらないか確認する。
+
+### 22. Height / Width を空にすると盤面が消える
+
+2026-10-30 起票
+
+#### 現象
+Width を空にして欄から離れると、10×10 の盤面が 10×1 になり、グライダーも消える。切り捨てられたセルは元に戻せない（ブラウザで確認）。
+
+#### 原因
+`changeDataMapSize` の `Number(width.value)` で空文字が 0 になり、`clampSize` で最小値の 1 に丸められる。
+
+#### 修正案
+空欄や数値でない値のときは、直前の値（`dataMap` の実際のサイズ）に戻す。コンポーネントテストと E2E テストも追加する。
+
+### 23. 大きい盤面でセルがほとんど枠線になる
+
+2026-10-30 起票
+
+#### 現状
+`.box` の枠線は常に 1px。100×100 ではセルの幅が 3.77px で（#21 の影響で盤面の幅が 376.5px のとき）、左右の枠線を除いた中身は約 1.8px しかない。#21 を直して盤面が 500px に広がっても、中身は約 3px。
+
+#### 修正案
+セルが小さいときは枠線を消す。例: `columns` と行数の大きいほうがしきい値を超えたら、`.map` にクラスを付けて `.box` の枠線をなくす。
+
+### 24. 短い間隔だとセルの色が変わりきらない
+
+2026-10-30 起票
+
+#### 現状
+`.box` の `transition: background-color 0.2s ease` は 0.2 秒かかるが、更新間隔は最短 0.1 秒なので、次の世代までに色が変わりきらない（コードからの判断で、実際の見え方は未確認）。
+
+#### 修正案
+間隔が短いときは transition をなくす。または transition 自体を削除する。100×100 の描画負荷（#8）も軽くなる可能性がある。
+
+### 25. Windows で lint エラーが 372 件出る
+
+2026-10-30 起票
+
+#### 現象
+`npx eslint .` で 372 件のエラーが出る。全件が `prettier/prettier` の改行コード（CRLF）の指摘で、対象は `src/components/LifeGame.vue` と `src/components/__tests__/LifeGame.test.ts` の 2 ファイル。
+
+#### 原因
+`core.autocrlf=true` の環境では、チェックアウトしたファイルが CRLF になることがある。一方、Prettier の `endOfLine` は既定の `lf` のままで、`.gitattributes` もない。
+
+#### 修正案
+`.gitattributes` に `* text=auto eol=lf` を追加して、作業ツリーの改行コードを LF にそろえる。
+
+### 26. 依存パッケージに脆弱性が 1 件ある（systeminformation）
+
+2026-10-30 起票
+
+#### 現状
+`npm audit` で `systeminformation` の深刻度 high の脆弱性（GHSA-3f7j-7jwc-fxfj）が 1 件報告される。Cypress 経由で入っている開発用の依存で、公開サイトには影響しない。
+
+#### 修正案
+`npm audit fix` を実行する。
+
+### 27. ビルド時に Vite の設定で警告が出る
+
+2026-10-30 起票
+
+#### 現象
+`vite build` や Vitest の実行時に、`vite.config.ts` が CommonJS として読み込まれているという警告（`configLoader: 'native'` が将来既定になるときに問題になる書き方）が出る。
+
+#### 修正案
+`package.json` に `"type": "module"` を追加する（解消するかは未確認）。他の設定ファイルへの影響も確認する。
+
 ## 対応済み
 
 ### 5. LifeGame.vue のアンマウント時にシミュレーションのタイマーが解除されない

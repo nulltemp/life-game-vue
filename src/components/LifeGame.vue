@@ -85,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import { nextGeneration } from '@/utils/life'
 
 const dataMap = ref([
@@ -164,7 +164,7 @@ const changeDataMapSize = () => {
 }
 
 const isStarted = ref(false)
-const startButtonMessage = ref('start')
+const startButtonMessage = computed(() => (isStarted.value ? 'stop' : 'start'))
 const generation = ref(0)
 let timerId: ReturnType<typeof setTimeout> | null = null
 
@@ -177,7 +177,6 @@ const update = () => {
 
 const changeStartStatus = () => {
   isStarted.value = !isStarted.value
-  startButtonMessage.value = isStarted.value ? 'stop' : 'start'
   if (timerId !== null) {
     clearTimeout(timerId)
     timerId = null
@@ -192,11 +191,11 @@ const stopStatus = () => {
     clearTimeout(timerId)
     timerId = null
   }
-  if (isStarted.value) {
-    isStarted.value = false
-    startButtonMessage.value = 'start'
-  }
+  isStarted.value = false
 }
+
+// Stop the self-rescheduling timer so it doesn't keep running after unmount
+onUnmounted(() => stopStatus())
 
 const randomize = () => {
   stopStatus()

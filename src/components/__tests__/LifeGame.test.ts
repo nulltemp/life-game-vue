@@ -74,6 +74,18 @@ describe('LifeGame.vue', () => {
     expect(wrapper.text()).toContain('Generation: 2')
   })
 
+  it('stops the simulation timer on unmount', async () => {
+    const wrapper = mountLifeGame()
+    const startButton = wrapper
+      .findAll('button')
+      .find((b) => b.text() === 'start')!
+    await startButton.trigger('click')
+    expect(vi.getTimerCount()).toBe(1)
+
+    wrapper.unmount()
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
   it('clears the grid and resets the generation counter', async () => {
     const wrapper = mountLifeGame()
     const startButton = wrapper

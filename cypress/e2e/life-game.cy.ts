@@ -68,4 +68,10 @@ describe('Life Game E2E Tests', () => {
   it('should have working GitHub link', () => {
     cy.get('a[href*="github.com"]').should('have.attr', 'target', '_blank')
   })
+
+  it('should have working Ko-fi link', () => {
+    cy.get('a[href="https://ko-fi.com/nulltemp"]')
+      .should('be.visible')
+      .and('have.attr', 'target', '_blank')
+  })
 })

@@ -8,6 +8,15 @@
       >
         View on GitHub
       </v-btn>
+      <v-btn
+        href="https://ko-fi.com/nulltemp"
+        target="_blank"
+        rel="noopener"
+        variant="outlined"
+        class="ml-2"
+      >
+        Support on Ko-fi
+      </v-btn>
       <div class="mt-4">
         <a href="https://nulltemp.com/privacy/" target="_blank" rel="noopener">
           Privacy Policy

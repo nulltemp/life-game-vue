@@ -104,23 +104,6 @@ GitHub #13 から移行（2026-10-28 起票）
 - 盤面のスクリーンショットなどの OGP 画像（1200×630 程度）を `public/` に置き、`og:image` / `twitter:image` を追加する。あわせて `twitter:card` を `summary_large_image` にする。
 - `lastmod` はビルド時に生成するか、正確に保てないなら削除する（省略可能な項目のため）。
 
-### 14. CI がなく、lint・型チェック・テストが自動で実行されない
-
-GitHub #14 から移行（2026-10-28 起票）
-
-#### 現状
-GitHub Actions のワークフローがなく、`npm run lint`・`npm run type-check`・`npm run test:unit` は手元で実行するしかない（CLAUDE.md にもその旨の記載がある）。実行し忘れると、壊れたコードがそのまま push・デプロイされうる。
-
-#### 修正案
-`.github/workflows/ci.yml` を追加し、push と PR で次を実行する:
-- `npm ci`（Cypress 本体のダウンロードが不要なら `CYPRESS_INSTALL_BINARY=0`）
-- `npx eslint .`（CI では `--fix` を付けない）
-- `npm run type-check`
-- `npm run test:unit`（#17 で `vitest run` になり、終了するようになった）
-- `npm run build`
-
-余裕があれば `cypress-io/github-action` で E2E テストも追加する。導入したら CLAUDE.md の「There is no CI」の記述を更新する。
-
 ### 15. 盤面の色が固定値でダークテーマに対応していない
 
 2026-10-30 起票
@@ -339,3 +322,23 @@ Width を空にして欄から離れると、10×10 の盤面が 10×1 になり
 #### 対応
 2026-11-17 対応（ブランチ `ccr-6eb7be8e-8j3i2w`）。`.gitattributes` に `* text=auto eol=lf` を追加した（`*.ico` は `binary`）。`core.autocrlf=true` でチェックアウトしても LF になることを確認した。
 すでに CRLF になっている作業ツリーは自動では直らないので、未コミットの変更がない状態で `git rm --cached -r . && git reset --hard` を実行して、チェックアウトし直す。
+
+### 14. CI がなく、lint・型チェック・テストが自動で実行されない
+
+GitHub #14 から移行（2026-10-28 起票）
+
+#### 現状
+GitHub Actions のワークフローがなく、`npm run lint`・`npm run type-check`・`npm run test:unit` は手元で実行するしかない（CLAUDE.md にもその旨の記載がある）。実行し忘れると、壊れたコードがそのまま push・デプロイされうる。
+
+#### 修正案
+`.github/workflows/ci.yml` を追加し、push と PR で次を実行する:
+- `npm ci`（Cypress 本体のダウンロードが不要なら `CYPRESS_INSTALL_BINARY=0`）
+- `npx eslint .`（CI では `--fix` を付けない）
+- `npm run type-check`
+- `npm run test:unit`（#17 で `vitest run` になり、終了するようになった）
+- `npm run build`
+
+余裕があれば `cypress-io/github-action` で E2E テストも追加する。導入したら CLAUDE.md の「There is no CI」の記述を更新する。
+
+#### 対応
+2026-11-17 対応（ブランチ `ccr-6eb7be8e-8j3i2w`）。`.github/workflows/ci.yml` を追加した。`master` への push と PR で、Node 22 を使って上の 5 つを実行する（ビルドは型チェックと重ならないよう `npm run build-only`）。E2E テストは CI に入れていない。CLAUDE.md の記述も更新した。

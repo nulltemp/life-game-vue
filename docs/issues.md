@@ -198,19 +198,6 @@ Vuetify のテーマ変数を使う。例: `background: rgb(var(--v-theme-primar
 #### 修正案
 間隔が短いときは transition をなくす。または transition 自体を削除する。100×100 の描画負荷（#8）も軽くなる可能性がある。
 
-### 25. Windows で lint エラーが 372 件出る
-
-2026-10-30 起票
-
-#### 現象
-`npx eslint .` で 372 件のエラーが出る。全件が `prettier/prettier` の改行コード（CRLF）の指摘で、対象は `src/components/LifeGame.vue` と `src/components/__tests__/LifeGame.test.ts` の 2 ファイル。
-
-#### 原因
-`core.autocrlf=true` の環境では、チェックアウトしたファイルが CRLF になることがある。一方、Prettier の `endOfLine` は既定の `lf` のままで、`.gitattributes` もない。
-
-#### 修正案
-`.gitattributes` に `* text=auto eol=lf` を追加して、作業ツリーの改行コードを LF にそろえる。
-
 ### 27. ビルド時に Vite の設定で警告が出る
 
 2026-10-30 起票
@@ -335,3 +322,20 @@ Width を空にして欄から離れると、10×10 の盤面が 10×1 になり
 
 #### 対応
 2026-11-17 対応（ブランチ `ccr-6eb7be8e-8j3i2w`）。`test:unit` を `vitest run ...` にし、ウォッチ用に `test:unit:watch` を追加した。CLAUDE.md と README も更新した。
+
+### 25. Windows で lint エラーが 372 件出る
+
+2026-10-30 起票
+
+#### 現象
+`npx eslint .` で 372 件のエラーが出る。全件が `prettier/prettier` の改行コード（CRLF）の指摘で、対象は `src/components/LifeGame.vue` と `src/components/__tests__/LifeGame.test.ts` の 2 ファイル。
+
+#### 原因
+`core.autocrlf=true` の環境では、チェックアウトしたファイルが CRLF になることがある。一方、Prettier の `endOfLine` は既定の `lf` のままで、`.gitattributes` もない。
+
+#### 修正案
+`.gitattributes` に `* text=auto eol=lf` を追加して、作業ツリーの改行コードを LF にそろえる。
+
+#### 対応
+2026-11-17 対応（ブランチ `ccr-6eb7be8e-8j3i2w`）。`.gitattributes` に `* text=auto eol=lf` を追加した（`*.ico` は `binary`）。`core.autocrlf=true` でチェックアウトしても LF になることを確認した。
+すでに CRLF になっている作業ツリーは自動では直らないので、未コミットの変更がない状態で `git rm --cached -r . && git reset --hard` を実行して、チェックアウトし直す。

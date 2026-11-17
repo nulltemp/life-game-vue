@@ -191,32 +191,6 @@ Vuetify のテーマ変数を使う。例: `background: rgb(var(--v-theme-primar
 - `countNeighbors` / `nextGeneration` にラップするかどうかの引数を追加し、UI に切り替えスイッチを置く。単体テストも追加する。
 - グライダー、パルサー、グライダー銃などのプリセットを選んで盤面に配置できるようにする（盤面より大きいパターンの扱いは要検討）。
 
-### 21. PC 幅で画面が左半分に寄る
-
-2026-10-30 起票
-
-#### 現象
-幅 1024px 以上の画面で、アプリが左半分にしか表示されない。幅 1024px のとき、`.v-application` の幅は 472.5px だった（手元でビルドした master をブラウザで確認。本番サイトは未確認）。
-
-#### 原因
-`src/assets/main.css` に Vue のテンプレート由来の指定が残っている。`@media (min-width: 1024px)` の `#app { display: grid; grid-template-columns: 1fr 1fr; }` で 2 カラムになり、中身が 1 列目だけに入る。リンクが緑色なのも同じファイルの指定による。
-
-#### 修正案
-`src/main.ts` の `./assets/main.css` の読み込みをやめ、`main.css` と `base.css` を削除する。`base.css` の `*` への指定（`margin: 0` など）もなくなるので、見た目が変わらないか確認する。
-
-### 22. Height / Width を空にすると盤面が消える
-
-2026-10-30 起票
-
-#### 現象
-Width を空にして欄から離れると、10×10 の盤面が 10×1 になり、グライダーも消える。切り捨てられたセルは元に戻せない（ブラウザで確認）。
-
-#### 原因
-`changeDataMapSize` の `Number(width.value)` で空文字が 0 になり、`clampSize` で最小値の 1 に丸められる。
-
-#### 修正案
-空欄や数値でない値のときは、直前の値（`dataMap` の実際のサイズ）に戻す。コンポーネントテストと E2E テストも追加する。
-
 ### 23. 大きい盤面でセルがほとんど枠線になる
 
 2026-10-30 起票
@@ -250,16 +224,6 @@ Width を空にして欄から離れると、10×10 の盤面が 10×1 になり
 #### 修正案
 `.gitattributes` に `* text=auto eol=lf` を追加して、作業ツリーの改行コードを LF にそろえる。
 
-### 26. 依存パッケージに脆弱性が 1 件ある（systeminformation）
-
-2026-10-30 起票
-
-#### 現状
-`npm audit` で `systeminformation` の深刻度 high の脆弱性（GHSA-3f7j-7jwc-fxfj）が 1 件報告される。Cypress 経由で入っている開発用の依存で、公開サイトには影響しない。
-
-#### 修正案
-`npm audit fix` を実行する。
-
 ### 27. ビルド時に Vite の設定で警告が出る
 
 2026-10-30 起票
@@ -269,6 +233,20 @@ Width を空にして欄から離れると、10×10 の盤面が 10×1 になり
 
 #### 修正案
 `package.json` に `"type": "module"` を追加する（解消するかは未確認）。他の設定ファイルへの影響も確認する。
+
+### 28. 依存パッケージに深刻度 moderate の脆弱性が 11 件ある（minimatch・glob）
+
+2026-11-17 起票
+
+#### 現状
+`npm audit` で深刻度 moderate の脆弱性が 11 件報告される。元になっているのは次の 2 つで、残りはこれらに依存するパッケージ。
+- `minimatch`（GHSA-g3hv-75wg-m249）: `@typescript-eslint/*`・`typescript-eslint`・`editorconfig` 経由
+- `glob`（GHSA-3g3m-2fjr-6pw4）: `js-beautify` 経由（`@vue/test-utils` が依存）
+
+いずれも開発用の依存で、公開サイトには影響しない。
+
+#### 修正案
+`npm audit fix` を実行する（`npm audit` によると、破壊的変更なしで修正できる）。実行後に lint・型チェック・単体テストが通ることを確認する。
 
 ## 対応済み
 
@@ -309,3 +287,48 @@ const startButtonMessage = computed(() => (isStarted.value ? 'stop' : 'start'))
 
 #### 対応
 2026-10-30 対応（コミット 83fa670、ブランチ `claude/elegant-allen-yc1s9d`）
+
+### 21. PC 幅で画面が左半分に寄る
+
+2026-10-30 起票
+
+#### 現象
+幅 1024px 以上の画面で、アプリが左半分にしか表示されない。幅 1024px のとき、`.v-application` の幅は 472.5px だった（手元でビルドした master をブラウザで確認。本番サイトは未確認）。
+
+#### 原因
+`src/assets/main.css` に Vue のテンプレート由来の指定が残っている。`@media (min-width: 1024px)` の `#app { display: grid; grid-template-columns: 1fr 1fr; }` で 2 カラムになり、中身が 1 列目だけに入る。リンクが緑色なのも同じファイルの指定による。
+
+#### 修正案
+`src/main.ts` の `./assets/main.css` の読み込みをやめ、`main.css` と `base.css` を削除する。`base.css` の `*` への指定（`margin: 0` など）もなくなるので、見た目が変わらないか確認する。
+
+#### 対応
+2026-10-30 対応（コミット b83c685）。`main.css` と `base.css` を削除し、`src/main.ts` での読み込みをやめた。
+
+### 22. Height / Width を空にすると盤面が消える
+
+2026-10-30 起票
+
+#### 現象
+Width を空にして欄から離れると、10×10 の盤面が 10×1 になり、グライダーも消える。切り捨てられたセルは元に戻せない（ブラウザで確認）。
+
+#### 原因
+`changeDataMapSize` の `Number(width.value)` で空文字が 0 になり、`clampSize` で最小値の 1 に丸められる。
+
+#### 修正案
+空欄や数値でない値のときは、直前の値（`dataMap` の実際のサイズ）に戻す。コンポーネントテストと E2E テストも追加する。
+
+#### 対応
+2026-10-30 対応（コミット b83c685）。`clampSize` で空欄や数値でない値のときは今のサイズを保つようにし、コンポーネントテストと E2E テストを追加した。
+
+### 26. 依存パッケージに脆弱性が 1 件ある（systeminformation）
+
+2026-10-30 起票
+
+#### 現状
+`npm audit` で `systeminformation` の深刻度 high の脆弱性（GHSA-3f7j-7jwc-fxfj）が 1 件報告される。Cypress 経由で入っている開発用の依存で、公開サイトには影響しない。
+
+#### 修正案
+`npm audit fix` を実行する。
+
+#### 対応
+2026-11-15 対応（コミット 1a4d05f のパッケージ更新）。2026-11-17 に `npm audit` で、この脆弱性が報告されなくなったことを確認した。代わりに報告されている深刻度 moderate の脆弱性は #28 に記録した。

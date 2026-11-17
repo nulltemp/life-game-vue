@@ -13,6 +13,8 @@ export default defineConfig({
     },
   },
   test: {
+    root: 'src',
+    environment: 'jsdom',
     server: {
       // Vuetify ships .css imports inside its components; let Vite process them when mounting in tests
       deps: { inline: ['vuetify'] },

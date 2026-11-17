@@ -29,7 +29,9 @@ const liveIndexes = (wrapper: ReturnType<typeof mountLifeGame>) =>
 
 describe('LifeGame.vue', () => {
   beforeEach(() => {
-    vi.useFakeTimers()
+    // Fake only the APIs the simulation loop uses, so getTimerCount() isn't
+    // inflated by setImmediate calls made internally by Vuetify/jsdom on mount
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
   })
 
   afterEach(() => {

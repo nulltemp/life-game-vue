@@ -62,6 +62,9 @@ npm run build
 
 ```sh
 npm run test:unit
+
+# watch mode
+npm run test:unit:watch
 ```
 
 ### Run End-to-End Tests with [Cypress](https://www.cypress.io/)

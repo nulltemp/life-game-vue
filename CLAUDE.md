@@ -8,7 +8,8 @@ This project uses `npm` (`package-lock.json` is the only lockfile).
 
 - `npm run dev` — start Vite dev server
 - `npm run build` — type-check (`vue-tsc`) then production build
-- `npm run test:unit` — run Vitest unit tests (jsdom environment, rooted at `src/`)
+- `npm run test:unit` — run Vitest unit tests once and exit (`vitest run`, jsdom environment, rooted at `src/`)
+- `npm run test:unit:watch` — same, in watch mode
 - `npm run test:unit -- src/utils/__tests__/life.test.ts` — run a single unit test file
 - `npm run test:e2e:dev` — run Cypress against the Vite dev server (interactive, opens Cypress UI)
 - `npm run test:e2e` — run Cypress headless against the preview server (run `npm run build` first)
@@ -45,7 +46,7 @@ This is a small single-page Vue 3 + Vuetify + TypeScript app implementing Conway
 ## Deployment and CI
 
 - The app is hosted on Cloudflare (https://life-game-vue.nulltemp.com/); the production build is `npm run build` → `dist/`.
-- There is no CI: GitHub Actions is not used and there is no `.github/workflows`. Run `npm run lint`, `npm run type-check` and `npm run test:unit` locally before pushing, since nothing runs them automatically.
+- CI is GitHub Actions (`.github/workflows/ci.yml`), run on pushes to `master` and on pull requests: `npm ci` (with `CYPRESS_INSTALL_BINARY=0`), `npx eslint .` (no `--fix`), `npm run type-check`, `npm run test:unit`, `npm run build-only`, on Node 22. E2E tests are not run in CI — run `npm run test:e2e` locally when changing UI.
 
 ## Issue tracking
 

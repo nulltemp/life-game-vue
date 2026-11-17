@@ -104,23 +104,6 @@ GitHub #13 から移行（2026-10-28 起票）
 - 盤面のスクリーンショットなどの OGP 画像（1200×630 程度）を `public/` に置き、`og:image` / `twitter:image` を追加する。あわせて `twitter:card` を `summary_large_image` にする。
 - `lastmod` はビルド時に生成するか、正確に保てないなら削除する（省略可能な項目のため）。
 
-### 14. CI がなく、lint・型チェック・テストが自動で実行されない
-
-GitHub #14 から移行（2026-10-28 起票）
-
-#### 現状
-GitHub Actions のワークフローがなく、`npm run lint`・`npm run type-check`・`npm run test:unit` は手元で実行するしかない（CLAUDE.md にもその旨の記載がある）。実行し忘れると、壊れたコードがそのまま push・デプロイされうる。
-
-#### 修正案
-`.github/workflows/ci.yml` を追加し、push と PR で次を実行する:
-- `npm ci`（Cypress 本体のダウンロードが不要なら `CYPRESS_INSTALL_BINARY=0`）
-- `npx eslint .`（CI では `--fix` を付けない）
-- `npm run type-check`
-- `npx vitest run --environment jsdom --root src/`
-- `npm run build`
-
-余裕があれば `cypress-io/github-action` で E2E テストも追加する。導入したら CLAUDE.md の「There is no CI」の記述を更新する。
-
 ### 15. 盤面の色が固定値でダークテーマに対応していない
 
 2026-10-30 起票
@@ -145,19 +128,6 @@ Vuetify のテーマ変数を使う。例: `background: rgb(var(--v-theme-primar
 - `src/utils/life.ts` に、2 つの盤面が同じかを判定する関数を追加し、単体テストを書く。
 - `update()` で直前の世代と比べ、変化がなければ `stopStatus()` で停止する。
 - 周期 2 以上の振動子（ブリンカーなど）は止まらないが、まずは「変化なし」だけを対象とする。周期パターンも止めるかは別途検討する。
-
-### 17. `npm run test:unit` がウォッチモードで起動する
-
-2026-10-30 起票
-
-#### 現状
-`package.json` の `test:unit` は `vitest --environment jsdom --root src/` で、`run` が付いていない。そのため対話的でない環境でもウォッチモードになり、終了しない。
-
-#### 影響
-#14 で CI を導入するとき、このスクリプトをそのまま呼ぶとジョブが終わらない。
-
-#### 修正案
-`test:unit` を `vitest run ...` にし、ウォッチ用に `test:unit:watch` を別に用意する。または CI では `npx vitest run ...` を直接呼ぶ。変更したら CLAUDE.md の Commands も更新する。
 
 ### 18. Start を押すとすぐに 1 世代進む
 
@@ -191,32 +161,6 @@ Vuetify のテーマ変数を使う。例: `background: rgb(var(--v-theme-primar
 - `countNeighbors` / `nextGeneration` にラップするかどうかの引数を追加し、UI に切り替えスイッチを置く。単体テストも追加する。
 - グライダー、パルサー、グライダー銃などのプリセットを選んで盤面に配置できるようにする（盤面より大きいパターンの扱いは要検討）。
 
-### 21. PC 幅で画面が左半分に寄る
-
-2026-10-30 起票
-
-#### 現象
-幅 1024px 以上の画面で、アプリが左半分にしか表示されない。幅 1024px のとき、`.v-application` の幅は 472.5px だった（手元でビルドした master をブラウザで確認。本番サイトは未確認）。
-
-#### 原因
-`src/assets/main.css` に Vue のテンプレート由来の指定が残っている。`@media (min-width: 1024px)` の `#app { display: grid; grid-template-columns: 1fr 1fr; }` で 2 カラムになり、中身が 1 列目だけに入る。リンクが緑色なのも同じファイルの指定による。
-
-#### 修正案
-`src/main.ts` の `./assets/main.css` の読み込みをやめ、`main.css` と `base.css` を削除する。`base.css` の `*` への指定（`margin: 0` など）もなくなるので、見た目が変わらないか確認する。
-
-### 22. Height / Width を空にすると盤面が消える
-
-2026-10-30 起票
-
-#### 現象
-Width を空にして欄から離れると、10×10 の盤面が 10×1 になり、グライダーも消える。切り捨てられたセルは元に戻せない（ブラウザで確認）。
-
-#### 原因
-`changeDataMapSize` の `Number(width.value)` で空文字が 0 になり、`clampSize` で最小値の 1 に丸められる。
-
-#### 修正案
-空欄や数値でない値のときは、直前の値（`dataMap` の実際のサイズ）に戻す。コンポーネントテストと E2E テストも追加する。
-
 ### 23. 大きい盤面でセルがほとんど枠線になる
 
 2026-10-30 起票
@@ -237,29 +181,6 @@ Width を空にして欄から離れると、10×10 の盤面が 10×1 になり
 #### 修正案
 間隔が短いときは transition をなくす。または transition 自体を削除する。100×100 の描画負荷（#8）も軽くなる可能性がある。
 
-### 25. Windows で lint エラーが 372 件出る
-
-2026-10-30 起票
-
-#### 現象
-`npx eslint .` で 372 件のエラーが出る。全件が `prettier/prettier` の改行コード（CRLF）の指摘で、対象は `src/components/LifeGame.vue` と `src/components/__tests__/LifeGame.test.ts` の 2 ファイル。
-
-#### 原因
-`core.autocrlf=true` の環境では、チェックアウトしたファイルが CRLF になることがある。一方、Prettier の `endOfLine` は既定の `lf` のままで、`.gitattributes` もない。
-
-#### 修正案
-`.gitattributes` に `* text=auto eol=lf` を追加して、作業ツリーの改行コードを LF にそろえる。
-
-### 26. 依存パッケージに脆弱性が 1 件ある（systeminformation）
-
-2026-10-30 起票
-
-#### 現状
-`npm audit` で `systeminformation` の深刻度 high の脆弱性（GHSA-3f7j-7jwc-fxfj）が 1 件報告される。Cypress 経由で入っている開発用の依存で、公開サイトには影響しない。
-
-#### 修正案
-`npm audit fix` を実行する。
-
 ### 27. ビルド時に Vite の設定で警告が出る
 
 2026-10-30 起票
@@ -269,6 +190,20 @@ Width を空にして欄から離れると、10×10 の盤面が 10×1 になり
 
 #### 修正案
 `package.json` に `"type": "module"` を追加する（解消するかは未確認）。他の設定ファイルへの影響も確認する。
+
+### 28. 依存パッケージに深刻度 moderate の脆弱性が 11 件ある（minimatch・glob）
+
+2026-11-17 起票
+
+#### 現状
+`npm audit` で深刻度 moderate の脆弱性が 11 件報告される。元になっているのは次の 2 つで、残りはこれらに依存するパッケージ。
+- `minimatch`（GHSA-g3hv-75wg-m249）: `@typescript-eslint/*`・`typescript-eslint`・`editorconfig` 経由
+- `glob`（GHSA-3g3m-2fjr-6pw4）: `js-beautify` 経由（`@vue/test-utils` が依存）
+
+いずれも開発用の依存で、公開サイトには影響しない。
+
+#### 修正案
+`npm audit fix` を実行する（`npm audit` によると、破壊的変更なしで修正できる）。実行後に lint・型チェック・単体テストが通ることを確認する。
 
 ## 対応済み
 
@@ -309,3 +244,101 @@ const startButtonMessage = computed(() => (isStarted.value ? 'stop' : 'start'))
 
 #### 対応
 2026-10-30 対応（コミット 83fa670、ブランチ `claude/elegant-allen-yc1s9d`）
+
+### 21. PC 幅で画面が左半分に寄る
+
+2026-10-30 起票
+
+#### 現象
+幅 1024px 以上の画面で、アプリが左半分にしか表示されない。幅 1024px のとき、`.v-application` の幅は 472.5px だった（手元でビルドした master をブラウザで確認。本番サイトは未確認）。
+
+#### 原因
+`src/assets/main.css` に Vue のテンプレート由来の指定が残っている。`@media (min-width: 1024px)` の `#app { display: grid; grid-template-columns: 1fr 1fr; }` で 2 カラムになり、中身が 1 列目だけに入る。リンクが緑色なのも同じファイルの指定による。
+
+#### 修正案
+`src/main.ts` の `./assets/main.css` の読み込みをやめ、`main.css` と `base.css` を削除する。`base.css` の `*` への指定（`margin: 0` など）もなくなるので、見た目が変わらないか確認する。
+
+#### 対応
+2026-10-30 対応（コミット b83c685）。`main.css` と `base.css` を削除し、`src/main.ts` での読み込みをやめた。
+
+### 22. Height / Width を空にすると盤面が消える
+
+2026-10-30 起票
+
+#### 現象
+Width を空にして欄から離れると、10×10 の盤面が 10×1 になり、グライダーも消える。切り捨てられたセルは元に戻せない（ブラウザで確認）。
+
+#### 原因
+`changeDataMapSize` の `Number(width.value)` で空文字が 0 になり、`clampSize` で最小値の 1 に丸められる。
+
+#### 修正案
+空欄や数値でない値のときは、直前の値（`dataMap` の実際のサイズ）に戻す。コンポーネントテストと E2E テストも追加する。
+
+#### 対応
+2026-10-30 対応（コミット b83c685）。`clampSize` で空欄や数値でない値のときは今のサイズを保つようにし、コンポーネントテストと E2E テストを追加した。
+
+### 26. 依存パッケージに脆弱性が 1 件ある（systeminformation）
+
+2026-10-30 起票
+
+#### 現状
+`npm audit` で `systeminformation` の深刻度 high の脆弱性（GHSA-3f7j-7jwc-fxfj）が 1 件報告される。Cypress 経由で入っている開発用の依存で、公開サイトには影響しない。
+
+#### 修正案
+`npm audit fix` を実行する。
+
+#### 対応
+2026-11-15 対応（コミット 1a4d05f のパッケージ更新）。2026-11-17 に `npm audit` で、この脆弱性が報告されなくなったことを確認した。代わりに報告されている深刻度 moderate の脆弱性は #28 に記録した。
+
+### 17. `npm run test:unit` がウォッチモードで起動する
+
+2026-10-30 起票
+
+#### 現状
+`package.json` の `test:unit` は `vitest --environment jsdom --root src/` で、`run` が付いていない。そのため対話的でない環境でもウォッチモードになり、終了しない。
+
+#### 影響
+#14 で CI を導入するとき、このスクリプトをそのまま呼ぶとジョブが終わらない。
+
+#### 修正案
+`test:unit` を `vitest run ...` にし、ウォッチ用に `test:unit:watch` を別に用意する。または CI では `npx vitest run ...` を直接呼ぶ。変更したら CLAUDE.md の Commands も更新する。
+
+#### 対応
+2026-11-17 対応（ブランチ `ccr-6eb7be8e-8j3i2w`）。`test:unit` を `vitest run ...` にし、ウォッチ用に `test:unit:watch` を追加した。CLAUDE.md と README も更新した。
+
+### 25. Windows で lint エラーが 372 件出る
+
+2026-10-30 起票
+
+#### 現象
+`npx eslint .` で 372 件のエラーが出る。全件が `prettier/prettier` の改行コード（CRLF）の指摘で、対象は `src/components/LifeGame.vue` と `src/components/__tests__/LifeGame.test.ts` の 2 ファイル。
+
+#### 原因
+`core.autocrlf=true` の環境では、チェックアウトしたファイルが CRLF になることがある。一方、Prettier の `endOfLine` は既定の `lf` のままで、`.gitattributes` もない。
+
+#### 修正案
+`.gitattributes` に `* text=auto eol=lf` を追加して、作業ツリーの改行コードを LF にそろえる。
+
+#### 対応
+2026-11-17 対応（ブランチ `ccr-6eb7be8e-8j3i2w`）。`.gitattributes` に `* text=auto eol=lf` を追加した（`*.ico` は `binary`）。`core.autocrlf=true` でチェックアウトしても LF になることを確認した。
+すでに CRLF になっている作業ツリーは自動では直らないので、未コミットの変更がない状態で `git rm --cached -r . && git reset --hard` を実行して、チェックアウトし直す。
+
+### 14. CI がなく、lint・型チェック・テストが自動で実行されない
+
+GitHub #14 から移行（2026-10-28 起票）
+
+#### 現状
+GitHub Actions のワークフローがなく、`npm run lint`・`npm run type-check`・`npm run test:unit` は手元で実行するしかない（CLAUDE.md にもその旨の記載がある）。実行し忘れると、壊れたコードがそのまま push・デプロイされうる。
+
+#### 修正案
+`.github/workflows/ci.yml` を追加し、push と PR で次を実行する:
+- `npm ci`（Cypress 本体のダウンロードが不要なら `CYPRESS_INSTALL_BINARY=0`）
+- `npx eslint .`（CI では `--fix` を付けない）
+- `npm run type-check`
+- `npm run test:unit`（#17 で `vitest run` になり、終了するようになった）
+- `npm run build`
+
+余裕があれば `cypress-io/github-action` で E2E テストも追加する。導入したら CLAUDE.md の「There is no CI」の記述を更新する。
+
+#### 対応
+2026-11-17 対応（ブランチ `ccr-6eb7be8e-8j3i2w`）。`.github/workflows/ci.yml` を追加した。`master` への push と PR で、Node 22 を使って上の 5 つを実行する（ビルドは型チェックと重ならないよう `npm run build-only`）。E2E テストは CI に入れていない。CLAUDE.md の記述も更新した。

@@ -116,7 +116,7 @@ GitHub Actions のワークフローがなく、`npm run lint`・`npm run type-c
 - `npm ci`（Cypress 本体のダウンロードが不要なら `CYPRESS_INSTALL_BINARY=0`）
 - `npx eslint .`（CI では `--fix` を付けない）
 - `npm run type-check`
-- `npx vitest run --environment jsdom --root src/`
+- `npm run test:unit`（#17 で `vitest run` になり、終了するようになった）
 - `npm run build`
 
 余裕があれば `cypress-io/github-action` で E2E テストも追加する。導入したら CLAUDE.md の「There is no CI」の記述を更新する。
@@ -145,19 +145,6 @@ Vuetify のテーマ変数を使う。例: `background: rgb(var(--v-theme-primar
 - `src/utils/life.ts` に、2 つの盤面が同じかを判定する関数を追加し、単体テストを書く。
 - `update()` で直前の世代と比べ、変化がなければ `stopStatus()` で停止する。
 - 周期 2 以上の振動子（ブリンカーなど）は止まらないが、まずは「変化なし」だけを対象とする。周期パターンも止めるかは別途検討する。
-
-### 17. `npm run test:unit` がウォッチモードで起動する
-
-2026-10-30 起票
-
-#### 現状
-`package.json` の `test:unit` は `vitest --environment jsdom --root src/` で、`run` が付いていない。そのため対話的でない環境でもウォッチモードになり、終了しない。
-
-#### 影響
-#14 で CI を導入するとき、このスクリプトをそのまま呼ぶとジョブが終わらない。
-
-#### 修正案
-`test:unit` を `vitest run ...` にし、ウォッチ用に `test:unit:watch` を別に用意する。または CI では `npx vitest run ...` を直接呼ぶ。変更したら CLAUDE.md の Commands も更新する。
 
 ### 18. Start を押すとすぐに 1 世代進む
 
@@ -332,3 +319,19 @@ Width を空にして欄から離れると、10×10 の盤面が 10×1 になり
 
 #### 対応
 2026-11-15 対応（コミット 1a4d05f のパッケージ更新）。2026-11-17 に `npm audit` で、この脆弱性が報告されなくなったことを確認した。代わりに報告されている深刻度 moderate の脆弱性は #28 に記録した。
+
+### 17. `npm run test:unit` がウォッチモードで起動する
+
+2026-10-30 起票
+
+#### 現状
+`package.json` の `test:unit` は `vitest --environment jsdom --root src/` で、`run` が付いていない。そのため対話的でない環境でもウォッチモードになり、終了しない。
+
+#### 影響
+#14 で CI を導入するとき、このスクリプトをそのまま呼ぶとジョブが終わらない。
+
+#### 修正案
+`test:unit` を `vitest run ...` にし、ウォッチ用に `test:unit:watch` を別に用意する。または CI では `npx vitest run ...` を直接呼ぶ。変更したら CLAUDE.md の Commands も更新する。
+
+#### 対応
+2026-11-17 対応（ブランチ `ccr-6eb7be8e-8j3i2w`）。`test:unit` を `vitest run ...` にし、ウォッチ用に `test:unit:watch` を追加した。CLAUDE.md と README も更新した。

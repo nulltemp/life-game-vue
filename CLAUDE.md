@@ -8,7 +8,8 @@ This project uses `npm` (`package-lock.json` is the only lockfile).
 
 - `npm run dev` — start Vite dev server
 - `npm run build` — type-check (`vue-tsc`) then production build
-- `npm run test:unit` — run Vitest unit tests (jsdom environment, rooted at `src/`)
+- `npm run test:unit` — run Vitest unit tests once and exit (`vitest run`, jsdom environment, rooted at `src/`)
+- `npm run test:unit:watch` — same, in watch mode
 - `npm run test:unit -- src/utils/__tests__/life.test.ts` — run a single unit test file
 - `npm run test:e2e:dev` — run Cypress against the Vite dev server (interactive, opens Cypress UI)
 - `npm run test:e2e` — run Cypress headless against the preview server (run `npm run build` first)

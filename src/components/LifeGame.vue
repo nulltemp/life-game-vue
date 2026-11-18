@@ -4,6 +4,7 @@
     <v-card-text>
       <div
         class="map"
+        :class="{ 'no-border': isDense }"
         :style="{
           gridTemplateColumns: `repeat(${columns}, 1fr)`,
           maxWidth: `${mapMaxWidth}px`,
@@ -122,6 +123,13 @@ const MAP_SIZE = 500
 const mapMaxWidth = computed(
   () =>
     (MAP_SIZE * columns.value) / Math.max(columns.value, dataMap.value.length),
+)
+
+// On large grids a 1px border would take up most of each cell, so drop it
+// once either side has more than DENSE_SIZE cells
+const DENSE_SIZE = 40
+const isDense = computed(
+  () => Math.max(columns.value, dataMap.value.length) > DENSE_SIZE,
 )
 
 // Blank or invalid input keeps the current size: Number('') is 0, which would
@@ -256,7 +264,10 @@ const clear = () => {
   border: 1px solid #ccc;
   aspect-ratio: 1;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+}
+
+.no-border .box {
+  border: none;
 }
 
 .box:hover {

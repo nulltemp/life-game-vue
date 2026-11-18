@@ -216,4 +216,25 @@ describe('LifeGame.vue', () => {
     await button('Step').trigger('click')
     expect(wrapper.text()).toContain('Generation: 0')
   })
+
+  it.each([
+    ['Width', '40', false],
+    ['Width', '41', true],
+    ['Height', '41', true],
+  ])(
+    'drops cell borders on large grids (%s = %s: %s)',
+    async (label, size, noBorder) => {
+      const wrapper = mountLifeGame()
+      const input = wrapper
+        .findAll('.v-text-field')
+        .find((field) => field.text().includes(label))!
+        .find('input')
+      expect(wrapper.find('.map').classes()).not.toContain('no-border')
+
+      await input.setValue(size)
+      expect(wrapper.find('.map').classes().includes('no-border')).toBe(
+        noBorder,
+      )
+    },
+  )
 })

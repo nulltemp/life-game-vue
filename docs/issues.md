@@ -191,19 +191,25 @@ Vuetify のテーマ変数を使う。例: `background: rgb(var(--v-theme-primar
 #### 修正案
 `package.json` に `"type": "module"` を追加する（解消するかは未確認）。他の設定ファイルへの影響も確認する。
 
-### 28. 依存パッケージに深刻度 moderate の脆弱性が 11 件ある（minimatch・glob）
+### 28. 依存パッケージに脆弱性がある（minimatch・glob・picomatch）
 
 2026-11-17 起票
 
 #### 現状
-`npm audit` で深刻度 moderate の脆弱性が 11 件報告される。元になっているのは次の 2 つで、残りはこれらに依存するパッケージ。
-- `minimatch`（GHSA-g3hv-75wg-m249）: `@typescript-eslint/*`・`typescript-eslint`・`editorconfig` 経由
-- `glob`（GHSA-3g3m-2fjr-6pw4）: `js-beautify` 経由（`@vue/test-utils` が依存）
+2026-11-18 時点で、`npm audit` の報告は 21 件（high 16 件、moderate 5 件）。元になっているのは次の 3 つで、残りはこれらに依存するパッケージ。いずれも開発用の依存で、公開サイトには影響しない。
+- `picomatch` 4.0.7（GHSA-fc5q-39xc-vjpf、high）: `vite`・`vitest`・`vue-tsc`（`@vue/language-core`）・`typescript-eslint`（`tinyglobby`・`fast-glob` など）経由。影響範囲は 4.0.7 以下で、4.0.7 が最新版のため修正版がまだない。
+- `glob` 13.0.7（GHSA-3g3m-2fjr-6pw4、moderate）: `@vue/test-utils` → `js-beautify` 2.0.3 経由。`js-beautify`（最新版）が `glob ^13.0.6` を指定しているため、修正済みの 14 系に上げられない。
+- `minimatch` 10.2.6（GHSA-g3hv-75wg-m249、moderate）: 上の `glob` と、`js-beautify` → `editorconfig` 3.0.2 経由。`editorconfig` が `~10.2.4` に固定している。
 
-いずれも開発用の依存で、公開サイトには影響しない。
+#### 経過
+- 2026-11-17 のパッケージ更新（コミット 0ec1965）で、`@typescript-eslint/*`・`typescript-eslint` 経由の `minimatch` は解消した（最上位の `minimatch` が 11.0.9 になった）。
+- `picomatch` の脆弱性は起票後に新しく報告されたもの。
 
 #### 修正案
-`npm audit fix` を実行する（`npm audit` によると、破壊的変更なしで修正できる）。実行後に lint・型チェック・単体テストが通ることを確認する。
+- `npm audit` が示す修正（`vite` 6.2.7・`vitest` 3.1.4・`vue-tsc` 3.0.1 など）はメジャーバージョンを下げるものなので、`npm audit fix --force` は実行しない。
+- `picomatch`: 修正版が出たら `npm update` で取り込む。
+- `glob` / `minimatch`: `js-beautify`（または `@vue/test-utils`）の更新を待つ。すぐに消したい場合は `package.json` の `overrides` で `glob` を 14.0.2 以上、`minimatch` を 11.0.1 以上に強制する方法もあるが、依存元が対応していない版で動かすことになる。
+- 対応後に lint・型チェック・単体テスト・ビルドが通ることを確認する。
 
 ## 対応済み
 

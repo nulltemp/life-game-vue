@@ -22,9 +22,10 @@ This is a small single-page Vue 3 + Vuetify + TypeScript app implementing Conway
 
 - `src/main.ts` — app entry; registers Pinia and Vuetify (full `components`/`directives` import, not tree-shaken).
 - `src/App.vue` — root component; just composes `LifeGame`, `AboutGame` and `Note`.
-- `src/utils/life.ts` — pure Game of Life rules: `countNeighbors(grid, i, j)` and `nextGeneration(grid)` (returns a new grid, does not mutate the input). Cells outside the grid count as dead (no wraparound).
-- `src/components/LifeGame.vue` — the game UI and state: holds the grid state (`dataMap`, a `number[][]` of 0/1), grid resize logic (`changeDataMapSize`), the generation step (`update`, which calls `nextGeneration`), and simulation start/stop (`changeStartStatus`/`stopStatus`). The simulation loop is a self-rescheduling `setTimeout` inside `update()` (not `setInterval`), gated by the `isStarted` ref. The timer handle is held in a module-scoped `timerId` and explicitly `clearTimeout`'d in `changeStartStatus`/`stopStatus` before any (re)start, to avoid duplicate concurrent loops from rapid stop/start toggling.
-- `src/components/Note.vue` — static GitHub link card.
+- `src/utils/life.ts` — pure Game of Life rules: `countNeighbors(grid, i, j)`, `nextGeneration(grid)` (returns a new grid, does not mutate the input) and `isSameGrid(a, b)` (same size and cells). Cells outside the grid count as dead (no wraparound).
+- `src/components/LifeGame.vue` — the game UI and state: holds the grid state (`dataMap`, a `number[][]` of 0/1), grid resize logic (`changeDataMapSize`), the generation step (`step`, which applies `nextGeneration` once and returns `false` without changing anything if the board would not change), the simulation loop (`update`, which calls `step`), the Step button (`stepOnce`: `stopStatus()` then `step()`), and simulation start/stop (`changeStartStatus`/`stopStatus`). The simulation loop is a self-rescheduling `setTimeout` inside `update()` (not `setInterval`), gated by the `isStarted` ref. `update()` stops the simulation (`stopStatus()`) when `step()` returns `false`, i.e. the next generation equals the current one (all dead or only still lifes); oscillators such as the blinker keep running. The timer handle is held in a module-scoped `timerId` and explicitly `clearTimeout`'d in `changeStartStatus`/`stopStatus` before any (re)start, to avoid duplicate concurrent loops from rapid stop/start toggling.
+- `src/components/AboutGame.vue` — static card explaining the Game of Life rules and how to play (keep its "How to play" list in sync when changing the UI).
+- `src/components/Note.vue` — static footer card: GitHub and Ko-fi link buttons, and a Privacy Policy link.
 - `@` path alias resolves to `src/` (configured in `vite.config.ts`).
 
 ### Grid semantics
@@ -32,7 +33,7 @@ This is a small single-page Vue 3 + Vuetify + TypeScript app implementing Conway
 - `dataMap` is row-major: `dataMap[i][j]` where `i` is row (height), `j` is column (width).
 - Cells are `0` (dead) or `1` (alive), not booleans.
 - Resizing (`changeDataMapSize`) mutates `dataMap` in place via `.length` truncation/extension rather than replacing the array — new cells default to `0`. Height/width are clamped to `[1, 100]` via `clampSize` before use, to guard against `RangeError` on negative sizes and runaway grids on very large ones. Blank or invalid input keeps the current size instead of clamping to the minimum, so it can't discard cells.
-- Grid CSS columns are an inline `:style` binding driven by the `columns` computed (`dataMap[0].length`), not the `width` ref, so the layout doesn't reflow while the Width input is still being typed (before `change` resizes `dataMap`). Cells are square via `aspect-ratio: 1`, and the board's `maxWidth` (`mapMaxWidth`) shrinks for tall grids so the whole board fits in 500×500px.
+- Grid CSS columns are an inline `:style` binding driven by the `columns` computed (`dataMap[0].length`), not the `width` ref, so the layout doesn't reflow while the Width input is still being typed (before `change` resizes `dataMap`). Cells are square via `aspect-ratio: 1`, and the board's `maxWidth` (`mapMaxWidth`) shrinks for tall grids so the whole board fits in 500×500px. When either side exceeds `DENSE_SIZE` (40) cells, `.map` gets the `no-border` class and the cells' 1px borders are dropped. Cells have no color transition, since the update interval can be shorter than any transition.
 
 ### Testing structure
 

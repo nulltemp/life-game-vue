@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { countNeighbors, nextGeneration } from '@/utils/life'
+import { countNeighbors, isSameGrid, nextGeneration } from '@/utils/life'
 
 describe('countNeighbors', () => {
   it('does not count the cell itself', () => {
@@ -99,5 +99,64 @@ describe('nextGeneration', () => {
     const copy = grid.map((row) => [...row])
     nextGeneration(grid)
     expect(grid).toEqual(copy)
+  })
+})
+
+describe('isSameGrid', () => {
+  it('returns true for grids with the same cells', () => {
+    const grid = [
+      [0, 1],
+      [1, 0],
+    ]
+    expect(
+      isSameGrid(
+        grid,
+        grid.map((row) => [...row]),
+      ),
+    ).toBe(true)
+  })
+
+  it('returns false when a cell differs', () => {
+    expect(
+      isSameGrid(
+        [
+          [0, 1],
+          [1, 0],
+        ],
+        [
+          [0, 1],
+          [1, 1],
+        ],
+      ),
+    ).toBe(false)
+  })
+
+  it('returns false when the sizes differ', () => {
+    expect(isSameGrid([[0, 0]], [[0, 0, 0]])).toBe(false)
+    expect(
+      isSameGrid(
+        [[0, 0]],
+        [
+          [0, 0],
+          [0, 0],
+        ],
+      ),
+    ).toBe(false)
+  })
+
+  it('detects a still life but not an oscillator', () => {
+    const block = [
+      [0, 0, 0, 0],
+      [0, 1, 1, 0],
+      [0, 1, 1, 0],
+      [0, 0, 0, 0],
+    ]
+    const blinker = [
+      [0, 0, 0],
+      [1, 1, 1],
+      [0, 0, 0],
+    ]
+    expect(isSameGrid(nextGeneration(block), block)).toBe(true)
+    expect(isSameGrid(nextGeneration(blinker), blinker)).toBe(false)
   })
 })

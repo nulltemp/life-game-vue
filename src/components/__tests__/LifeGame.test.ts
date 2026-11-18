@@ -146,4 +146,95 @@ describe('LifeGame.vue', () => {
       expect((input.element as HTMLInputElement).value).toBe('10')
     },
   )
+
+  it('does not start on an empty board', async () => {
+    const wrapper = mountLifeGame()
+    const button = (text: string) =>
+      wrapper.findAll('button').find((b) => b.text() === text)!
+    await button('Clear').trigger('click')
+
+    await button('start').trigger('click')
+    expect(button('start')).toBeDefined()
+    expect(wrapper.text()).toContain('Generation: 0')
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
+  it('stops by itself once the board stops changing', async () => {
+    const wrapper = mountLifeGame()
+    const startButton = () =>
+      wrapper.findAll('button').find((b) => /start|stop/.test(b.text()))!
+
+    // In the 10x10 grid, the initial glider hits the bottom-right corner and
+    // settles into a 2x2 block (still life) after 27 generations
+    await startButton().trigger('click')
+    await vi.advanceTimersByTimeAsync(60_000)
+
+    expect(startButton().text()).toBe('start')
+    expect(wrapper.text()).toContain('Generation: 27')
+    expect(liveIndexes(wrapper)).toEqual([88, 89, 98, 99])
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
+  it('advances exactly one generation on Step', async () => {
+    const wrapper = mountLifeGame()
+    const button = (text: string) =>
+      wrapper.findAll('button').find((b) => b.text() === text)!
+
+    await button('Step').trigger('click')
+    expect(wrapper.text()).toContain('Generation: 1')
+    expect(liveIndexes(wrapper)).toEqual([21, 23, 32, 33, 42])
+    expect(button('start')).toBeDefined()
+    expect(vi.getTimerCount()).toBe(0)
+
+    await button('Step').trigger('click')
+    expect(wrapper.text()).toContain('Generation: 2')
+  })
+
+  it('pauses a running simulation on Step', async () => {
+    const wrapper = mountLifeGame()
+    const button = (text: string) =>
+      wrapper.findAll('button').find((b) => b.text() === text)!
+
+    await button('start').trigger('click')
+    expect(wrapper.text()).toContain('Generation: 1')
+
+    await button('Step').trigger('click')
+    expect(wrapper.text()).toContain('Generation: 2')
+    expect(button('start')).toBeDefined()
+    expect(vi.getTimerCount()).toBe(0)
+
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(wrapper.text()).toContain('Generation: 2')
+  })
+
+  it('does not count a Step that leaves the board unchanged', async () => {
+    const wrapper = mountLifeGame()
+    const button = (text: string) =>
+      wrapper.findAll('button').find((b) => b.text() === text)!
+    await button('Clear').trigger('click')
+
+    await button('Step').trigger('click')
+    expect(wrapper.text()).toContain('Generation: 0')
+  })
+
+  it.each([
+    ['Width', '40', false],
+    ['Width', '41', true],
+    ['Height', '41', true],
+  ])(
+    'drops cell borders on large grids (%s = %s: %s)',
+    async (label, size, noBorder) => {
+      const wrapper = mountLifeGame()
+      const input = wrapper
+        .findAll('.v-text-field')
+        .find((field) => field.text().includes(label))!
+        .find('input')
+      expect(wrapper.find('.map').classes()).not.toContain('no-border')
+
+      await input.setValue(size)
+      expect(wrapper.find('.map').classes().includes('no-border')).toBe(
+        noBorder,
+      )
+    },
+  )
 })

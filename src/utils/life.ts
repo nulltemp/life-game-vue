@@ -28,3 +28,11 @@ export const nextGeneration = (grid: Grid): Grid =>
       return lifeCount === 3 ? 1 : 0
     }),
   )
+
+// Returns true if both grids have the same size and the same cell values.
+export const isSameGrid = (a: Grid, b: Grid): boolean =>
+  a.length === b.length &&
+  a.every(
+    (row, i) =>
+      row.length === b[i].length && row.every((cell, j) => cell === b[i][j]),
+  )

@@ -81,17 +81,6 @@ GitHub #11 から移行（2026-10-28 起票）
 - `App.test.ts` を、マウントして `LifeGame` / `AboutGame` / `Note` が描画されることを確かめる内容にする。
 - 上の機能について E2E のケースを追加する。
 
-### 12. ドキュメントの古い記述（CLAUDE.md の Note.vue、README の IDE 推奨）
-
-GitHub #12 から移行（2026-10-28 起票）
-
-#### 古くなっている箇所
-- **CLAUDE.md**: `src/components/Note.vue` を「static GitHub link card」と説明しているが、今はプライバシーポリシーのリンクも含んでいる。また `src/components/AboutGame.vue`（ゲームの説明カード）がファイル一覧にない。
-- **README.md**: IDE の推奨が「Volar + TypeScript Vue Plugin (Volar)」のまま。これらの拡張機能は現在「Vue - Official」に統合されている。
-
-#### 修正案
-上記の記述を現状に合わせて更新する。
-
 ### 13. SEO: og:image がなく、sitemap の lastmod が手動更新
 
 GitHub #13 から移行（2026-10-28 起票）
@@ -117,18 +106,6 @@ Vuetify のテーマ（ダークテーマなど）を切り替えても盤面の
 #### 修正案
 Vuetify のテーマ変数を使う。例: `background: rgb(var(--v-theme-primary))`、`background: rgb(var(--v-theme-surface))`、枠線は `rgba(var(--v-border-color), var(--v-border-opacity))`。
 
-### 16. 盤面が変化しなくなってもシミュレーションが止まらない
-
-2026-10-30 起票
-
-#### 現状
-全滅したときや静止パターンだけになったときも、`update()` が呼ばれ続けて Generation だけが増える。
-
-#### 修正案
-- `src/utils/life.ts` に、2 つの盤面が同じかを判定する関数を追加し、単体テストを書く。
-- `update()` で直前の世代と比べ、変化がなければ `stopStatus()` で停止する。
-- 周期 2 以上の振動子（ブリンカーなど）は止まらないが、まずは「変化なし」だけを対象とする。周期パターンも止めるかは別途検討する。
-
 ### 18. Start を押すとすぐに 1 世代進む
 
 2026-10-30 起票
@@ -138,16 +115,6 @@ Vuetify のテーマ変数を使う。例: `background: rgb(var(--v-theme-primar
 
 #### 検討事項
 押した直後に盤面が変わるので反応が良いとも言えるが、設定した間隔と最初の 1 歩だけ挙動が違う。意図した仕様ならこのままでよい。変えるなら最初の呼び出しを `setTimeout(update, interval.value)` にする（コンポーネントテストの期待値も変わる）。
-
-### 19. 1 世代ずつ進める「Step」ボタンがない
-
-2026-10-30 起票
-
-#### 現状
-世代を進めるには Start / Stop しかなく、グライダーなどの動きを 1 歩ずつ観察できない。
-
-#### 修正案
-「Step」ボタンを追加し、停止中に `nextGeneration` を 1 回適用して Generation を 1 増やす。実行中に押したときは停止してから 1 歩進める（またはボタンを無効にする）。
 
 ### 20. 端をつなげる（トーラス）オプションや有名パターンのプリセットがない
 
@@ -161,49 +128,43 @@ Vuetify のテーマ変数を使う。例: `background: rgb(var(--v-theme-primar
 - `countNeighbors` / `nextGeneration` にラップするかどうかの引数を追加し、UI に切り替えスイッチを置く。単体テストも追加する。
 - グライダー、パルサー、グライダー銃などのプリセットを選んで盤面に配置できるようにする（盤面より大きいパターンの扱いは要検討）。
 
-### 23. 大きい盤面でセルがほとんど枠線になる
-
-2026-10-30 起票
-
-#### 現状
+### 現状
 `.box` の枠線は常に 1px。100×100 ではセルの幅が 3.77px で（#21 の影響で盤面の幅が 376.5px のとき）、左右の枠線を除いた中身は約 1.8px しかない。#21 を直して盤面が 500px に広がっても、中身は約 3px。
 
 #### 修正案
 セルが小さいときは枠線を消す。例: `columns` と行数の大きいほうがしきい値を超えたら、`.map` にクラスを付けて `.box` の枠線をなくす。
 
-### 24. 短い間隔だとセルの色が変わりきらない
-
-2026-10-30 起票
-
-#### 現状
+### 現状
 `.box` の `transition: background-color 0.2s ease` は 0.2 秒かかるが、更新間隔は最短 0.1 秒なので、次の世代までに色が変わりきらない（コードからの判断で、実際の見え方は未確認）。
 
 #### 修正案
 間隔が短いときは transition をなくす。または transition 自体を削除する。100×100 の描画負荷（#8）も軽くなる可能性がある。
 
-### 27. ビルド時に Vite の設定で警告が出る
-
-2026-10-30 起票
-
-#### 現象
+### 現象
 `vite build` や Vitest の実行時に、`vite.config.ts` が CommonJS として読み込まれているという警告（`configLoader: 'native'` が将来既定になるときに問題になる書き方）が出る。
 
 #### 修正案
 `package.json` に `"type": "module"` を追加する（解消するかは未確認）。他の設定ファイルへの影響も確認する。
 
-### 28. 依存パッケージに深刻度 moderate の脆弱性が 11 件ある（minimatch・glob）
+### 28. 依存パッケージに脆弱性がある（minimatch・glob・picomatch）
 
 2026-11-17 起票
 
 #### 現状
-`npm audit` で深刻度 moderate の脆弱性が 11 件報告される。元になっているのは次の 2 つで、残りはこれらに依存するパッケージ。
-- `minimatch`（GHSA-g3hv-75wg-m249）: `@typescript-eslint/*`・`typescript-eslint`・`editorconfig` 経由
-- `glob`（GHSA-3g3m-2fjr-6pw4）: `js-beautify` 経由（`@vue/test-utils` が依存）
+2026-11-18 時点で、`npm audit` の報告は 21 件（high 16 件、moderate 5 件）。元になっているのは次の 3 つで、残りはこれらに依存するパッケージ。いずれも開発用の依存で、公開サイトには影響しない。
+- `picomatch` 4.0.7（GHSA-fc5q-39xc-vjpf、high）: `vite`・`vitest`・`vue-tsc`（`@vue/language-core`）・`typescript-eslint`（`tinyglobby`・`fast-glob` など）経由。影響範囲は 4.0.7 以下で、4.0.7 が最新版のため修正版がまだない。
+- `glob` 13.0.7（GHSA-3g3m-2fjr-6pw4、moderate）: `@vue/test-utils` → `js-beautify` 2.0.3 経由。`js-beautify`（最新版）が `glob ^13.0.6` を指定しているため、修正済みの 14 系に上げられない。
+- `minimatch` 10.2.6（GHSA-g3hv-75wg-m249、moderate）: 上の `glob` と、`js-beautify` → `editorconfig` 3.0.2 経由。`editorconfig` が `~10.2.4` に固定している。
 
-いずれも開発用の依存で、公開サイトには影響しない。
+#### 経過
+- 2026-11-17 のパッケージ更新（コミット 0ec1965）で、`@typescript-eslint/*`・`typescript-eslint` 経由の `minimatch` は解消した（最上位の `minimatch` が 11.0.9 になった）。
+- `picomatch` の脆弱性は起票後に新しく報告されたもの。
 
 #### 修正案
-`npm audit fix` を実行する（`npm audit` によると、破壊的変更なしで修正できる）。実行後に lint・型チェック・単体テストが通ることを確認する。
+- `npm audit` が示す修正（`vite` 6.2.7・`vitest` 3.1.4・`vue-tsc` 3.0.1 など）はメジャーバージョンを下げるものなので、`npm audit fix --force` は実行しない。
+- `picomatch`: 修正版が出たら `npm update` で取り込む。
+- `glob` / `minimatch`: `js-beautify`（または `@vue/test-utils`）の更新を待つ。すぐに消したい場合は `package.json` の `overrides` で `glob` を 14.0.2 以上、`minimatch` を 11.0.1 以上に強制する方法もあるが、依存元が対応していない版で動かすことになる。
+- 対応後に lint・型チェック・単体テスト・ビルドが通ることを確認する。
 
 ## 対応済み
 
@@ -342,3 +303,72 @@ GitHub Actions のワークフローがなく、`npm run lint`・`npm run type-c
 
 #### 対応
 2026-11-17 対応（ブランチ `ccr-6eb7be8e-8j3i2w`）。`.github/workflows/ci.yml` を追加した。`master` への push と PR で、Node 22 を使って上の 5 つを実行する（ビルドは型チェックと重ならないよう `npm run build-only`）。E2E テストは CI に入れていない。CLAUDE.md の記述も更新した。
+
+### 12. ドキュメントの古い記述（CLAUDE.md の Note.vue、README の IDE 推奨）
+
+GitHub #12 から移行（2026-10-28 起票）
+
+#### 古くなっている箇所
+- **CLAUDE.md**: `src/components/Note.vue` を「static GitHub link card」と説明しているが、今はプライバシーポリシーのリンクも含んでいる。また `src/components/AboutGame.vue`（ゲームの説明カード）がファイル一覧にない。
+- **README.md**: IDE の推奨が「Volar + TypeScript Vue Plugin (Volar)」のまま。これらの拡張機能は現在「Vue - Official」に統合されている。
+
+#### 修正案
+上記の記述を現状に合わせて更新する。
+
+#### 対応
+2026-11-18 対応（ブランチ `ccr-b473c45a-y0q6e0`）。CLAUDE.md の `Note.vue` の説明を直し、`AboutGame.vue` の説明を追加した。README の IDE 推奨を「Vue - Official」にし、廃止された Take Over Mode の説明を削除した。`.vscode/extensions.json` の推奨からも、廃止された `Vue.vscode-typescript-vue-plugin` を外した。
+
+### 16. 盤面が変化しなくなってもシミュレーションが止まらない
+
+2026-10-30 起票
+
+#### 現状
+全滅したときや静止パターンだけになったときも、`update()` が呼ばれ続けて Generation だけが増える。
+
+#### 修正案
+- `src/utils/life.ts` に、2 つの盤面が同じかを判定する関数を追加し、単体テストを書く。
+- `update()` で直前の世代と比べ、変化がなければ `stopStatus()` で停止する。
+- 周期 2 以上の振動子（ブリンカーなど）は止まらないが、まずは「変化なし」だけを対象とする。周期パターンも止めるかは別途検討する。
+
+#### 対応
+2026-11-18 対応（ブランチ `ccr-b473c45a-y0q6e0`）。`src/utils/life.ts` に `isSameGrid` を追加して単体テストを書いた。`update()` で次の世代が今の盤面と同じなら、Generation を増やさずに `stopStatus()` で止めるようにした。空の盤面で Start を押したときもすぐに止まる。周期 2 以上の振動子は今までどおり止まらない。コンポーネントテストに、空の盤面では動かないことと、初期のグライダーが右下の角でブロックになって 27 世代目で止まることを追加した。
+
+### 19. 1 世代ずつ進める「Step」ボタンがない
+
+2026-10-30 起票
+
+#### 現状
+世代を進めるには Start / Stop しかなく、グライダーなどの動きを 1 歩ずつ観察できない。
+
+#### 修正案
+「Step」ボタンを追加し、停止中に `nextGeneration` を 1 回適用して Generation を 1 増やす。実行中に押したときは停止してから 1 歩進める（またはボタンを無効にする）。
+
+#### 対応
+2026-11-18 対応（ブランチ `ccr-b473c45a-y0q6e0`）。Random・Clear の横に「Step」ボタンを追加した。押すと 1 世代だけ進め、実行中に押したときは停止してから 1 歩進める。盤面が変化しないとき（#16 と同じ判定）は Generation を増やさない。世代を進める処理を `step()` にまとめ、シミュレーションのループ（`update()`）と共用している。遊び方の説明（`AboutGame.vue`・README）とコンポーネントテストも追加した。
+
+### 23. 大きい盤面でセルがほとんど枠線になる
+
+2026-10-30 起票
+
+#
+
+#### 対応
+2026-11-18 対応（ブランチ `ccr-b473c45a-y0q6e0`）。縦か横のどちらかが 40 セル（`DENSE_SIZE`）を超えたら、`.map` に `no-border` クラスを付けて `.box` の枠線を消すようにした。幅 1024px の画面で、40×40 はセルの幅 12.5px（枠線あり）、41×41 は 12.2px（枠線なし）、100×100 は 5px（枠線なし、中身も 5px）になることをブラウザで確認した。コンポーネントテストも追加した。
+
+### 24. 短い間隔だとセルの色が変わりきらない
+
+2026-10-30 起票
+
+#
+
+#### 対応
+2026-11-18 対応（ブランチ `ccr-b473c45a-y0q6e0`）。`.box` の `transition` を削除した。
+
+### 27. ビルド時に Vite の設定で警告が出る
+
+2026-10-30 起票
+
+#
+
+#### 対応
+2026-11-18 対応（ブランチ `ccr-b473c45a-y0q6e0`）。`package.json` に `"type": "module"` を追加した。`vite build` で警告が出なくなったことを確認した。lint・型チェック・単体テスト・ビルド・開発サーバーの起動も問題なかった。設定ファイルは `vite.config.ts`・`cypress.config.ts`・`eslint.config.mjs` で、どれも ESM の書き方なので変更していない。E2E テスト（Cypress）は、作業した環境に Cypress 本体をダウンロードできず、未確認。

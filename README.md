@@ -20,6 +20,7 @@ A modern implementation of Conway's Game of Life using Vue 3, Vuetify, and TypeS
 3. Set the generation interval speed (0.1s to 1.0s)
 4. Click "Start" to begin the simulation
 5. Click "Stop" to pause the evolution
+6. Click "Step" to advance one generation at a time (pauses a running simulation)
 
 ## Recommended IDE Setup
 

@@ -174,4 +174,46 @@ describe('LifeGame.vue', () => {
     expect(liveIndexes(wrapper)).toEqual([88, 89, 98, 99])
     expect(vi.getTimerCount()).toBe(0)
   })
+
+  it('advances exactly one generation on Step', async () => {
+    const wrapper = mountLifeGame()
+    const button = (text: string) =>
+      wrapper.findAll('button').find((b) => b.text() === text)!
+
+    await button('Step').trigger('click')
+    expect(wrapper.text()).toContain('Generation: 1')
+    expect(liveIndexes(wrapper)).toEqual([21, 23, 32, 33, 42])
+    expect(button('start')).toBeDefined()
+    expect(vi.getTimerCount()).toBe(0)
+
+    await button('Step').trigger('click')
+    expect(wrapper.text()).toContain('Generation: 2')
+  })
+
+  it('pauses a running simulation on Step', async () => {
+    const wrapper = mountLifeGame()
+    const button = (text: string) =>
+      wrapper.findAll('button').find((b) => b.text() === text)!
+
+    await button('start').trigger('click')
+    expect(wrapper.text()).toContain('Generation: 1')
+
+    await button('Step').trigger('click')
+    expect(wrapper.text()).toContain('Generation: 2')
+    expect(button('start')).toBeDefined()
+    expect(vi.getTimerCount()).toBe(0)
+
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(wrapper.text()).toContain('Generation: 2')
+  })
+
+  it('does not count a Step that leaves the board unchanged', async () => {
+    const wrapper = mountLifeGame()
+    const button = (text: string) =>
+      wrapper.findAll('button').find((b) => b.text() === text)!
+    await button('Clear').trigger('click')
+
+    await button('Step').trigger('click')
+    expect(wrapper.text()).toContain('Generation: 0')
+  })
 })

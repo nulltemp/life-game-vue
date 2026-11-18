@@ -68,12 +68,17 @@
         {{ startButtonMessage }}
       </v-btn>
       <v-row dense>
-        <v-col cols="6">
+        <v-col cols="4">
+          <v-btn @click="stepOnce" size="large" variant="outlined" block>
+            Step
+          </v-btn>
+        </v-col>
+        <v-col cols="4">
           <v-btn @click="randomize" size="large" variant="outlined" block>
             Random
           </v-btn>
         </v-col>
-        <v-col cols="6">
+        <v-col cols="4">
           <v-btn @click="clear" size="large" variant="outlined" block>
             Clear
           </v-btn>
@@ -171,16 +176,23 @@ const startButtonMessage = computed(() => (isStarted.value ? 'stop' : 'start'))
 const generation = ref(0)
 let timerId: ReturnType<typeof setTimeout> | null = null
 
-const update = () => {
+// Advances one generation. Returns false (and leaves the board and counter
+// as they are) if the board no longer changes (all dead or only still lifes)
+const step = (): boolean => {
   const next = nextGeneration(dataMap.value)
-  // Stop once the board no longer changes (all dead or only still lifes)
   if (isSameGrid(next, dataMap.value)) {
-    stopStatus()
-    return
+    return false
   }
   dataMap.value = next
   generation.value++
+  return true
+}
 
+const update = () => {
+  if (!step()) {
+    stopStatus()
+    return
+  }
   timerId = setTimeout(update, interval.value)
 }
 
@@ -201,6 +213,12 @@ const stopStatus = () => {
     timerId = null
   }
   isStarted.value = false
+}
+
+// Step button: pause a running simulation, then advance exactly one generation
+const stepOnce = () => {
+  stopStatus()
+  step()
 }
 
 // Stop the self-rescheduling timer so it doesn't keep running after unmount

@@ -81,17 +81,6 @@ GitHub #11 から移行（2026-10-28 起票）
 - `App.test.ts` を、マウントして `LifeGame` / `AboutGame` / `Note` が描画されることを確かめる内容にする。
 - 上の機能について E2E のケースを追加する。
 
-### 12. ドキュメントの古い記述（CLAUDE.md の Note.vue、README の IDE 推奨）
-
-GitHub #12 から移行（2026-10-28 起票）
-
-#### 古くなっている箇所
-- **CLAUDE.md**: `src/components/Note.vue` を「static GitHub link card」と説明しているが、今はプライバシーポリシーのリンクも含んでいる。また `src/components/AboutGame.vue`（ゲームの説明カード）がファイル一覧にない。
-- **README.md**: IDE の推奨が「Volar + TypeScript Vue Plugin (Volar)」のまま。これらの拡張機能は現在「Vue - Official」に統合されている。
-
-#### 修正案
-上記の記述を現状に合わせて更新する。
-
 ### 13. SEO: og:image がなく、sitemap の lastmod が手動更新
 
 GitHub #13 から移行（2026-10-28 起票）
@@ -348,3 +337,17 @@ GitHub Actions のワークフローがなく、`npm run lint`・`npm run type-c
 
 #### 対応
 2026-11-17 対応（ブランチ `ccr-6eb7be8e-8j3i2w`）。`.github/workflows/ci.yml` を追加した。`master` への push と PR で、Node 22 を使って上の 5 つを実行する（ビルドは型チェックと重ならないよう `npm run build-only`）。E2E テストは CI に入れていない。CLAUDE.md の記述も更新した。
+
+### 12. ドキュメントの古い記述（CLAUDE.md の Note.vue、README の IDE 推奨）
+
+GitHub #12 から移行（2026-10-28 起票）
+
+#### 古くなっている箇所
+- **CLAUDE.md**: `src/components/Note.vue` を「static GitHub link card」と説明しているが、今はプライバシーポリシーのリンクも含んでいる。また `src/components/AboutGame.vue`（ゲームの説明カード）がファイル一覧にない。
+- **README.md**: IDE の推奨が「Volar + TypeScript Vue Plugin (Volar)」のまま。これらの拡張機能は現在「Vue - Official」に統合されている。
+
+#### 修正案
+上記の記述を現状に合わせて更新する。
+
+#### 対応
+2026-11-18 対応（ブランチ `ccr-b473c45a-y0q6e0`）。CLAUDE.md の `Note.vue` の説明を直し、`AboutGame.vue` の説明を追加した。README の IDE 推奨を「Vue - Official」にし、廃止された Take Over Mode の説明を削除した。`.vscode/extensions.json` の推奨からも、廃止された `Vue.vscode-typescript-vue-plugin` を外した。

@@ -24,7 +24,8 @@ This is a small single-page Vue 3 + Vuetify + TypeScript app implementing Conway
 - `src/App.vue` — root component; just composes `LifeGame`, `AboutGame` and `Note`.
 - `src/utils/life.ts` — pure Game of Life rules: `countNeighbors(grid, i, j)` and `nextGeneration(grid)` (returns a new grid, does not mutate the input). Cells outside the grid count as dead (no wraparound).
 - `src/components/LifeGame.vue` — the game UI and state: holds the grid state (`dataMap`, a `number[][]` of 0/1), grid resize logic (`changeDataMapSize`), the generation step (`update`, which calls `nextGeneration`), and simulation start/stop (`changeStartStatus`/`stopStatus`). The simulation loop is a self-rescheduling `setTimeout` inside `update()` (not `setInterval`), gated by the `isStarted` ref. The timer handle is held in a module-scoped `timerId` and explicitly `clearTimeout`'d in `changeStartStatus`/`stopStatus` before any (re)start, to avoid duplicate concurrent loops from rapid stop/start toggling.
-- `src/components/Note.vue` — static GitHub link card.
+- `src/components/AboutGame.vue` — static card explaining the Game of Life rules and how to play (keep its "How to play" list in sync when changing the UI).
+- `src/components/Note.vue` — static footer card: GitHub and Ko-fi link buttons, and a Privacy Policy link.
 - `@` path alias resolves to `src/` (configured in `vite.config.ts`).
 
 ### Grid semantics

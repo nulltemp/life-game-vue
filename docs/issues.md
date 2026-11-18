@@ -140,11 +140,7 @@ Vuetify のテーマ変数を使う。例: `background: rgb(var(--v-theme-primar
 #### 修正案
 間隔が短いときは transition をなくす。または transition 自体を削除する。100×100 の描画負荷（#8）も軽くなる可能性がある。
 
-### 27. ビルド時に Vite の設定で警告が出る
-
-2026-10-30 起票
-
-#### 現象
+### 現象
 `vite build` や Vitest の実行時に、`vite.config.ts` が CommonJS として読み込まれているという警告（`configLoader: 'native'` が将来既定になるときに問題になる書き方）が出る。
 
 #### 修正案
@@ -367,3 +363,12 @@ GitHub #12 から移行（2026-10-28 起票）
 
 #### 対応
 2026-11-18 対応（ブランチ `ccr-b473c45a-y0q6e0`）。`.box` の `transition` を削除した。
+
+### 27. ビルド時に Vite の設定で警告が出る
+
+2026-10-30 起票
+
+#
+
+#### 対応
+2026-11-18 対応（ブランチ `ccr-b473c45a-y0q6e0`）。`package.json` に `"type": "module"` を追加した。`vite build` で警告が出なくなったことを確認した。lint・型チェック・単体テスト・ビルド・開発サーバーの起動も問題なかった。設定ファイルは `vite.config.ts`・`cypress.config.ts`・`eslint.config.mjs` で、どれも ESM の書き方なので変更していない。E2E テスト（Cypress）は、作業した環境に Cypress 本体をダウンロードできず、未確認。

@@ -86,7 +86,7 @@
 
 <script setup lang="ts">
 import { computed, onUnmounted, ref } from 'vue'
-import { nextGeneration } from '@/utils/life'
+import { isSameGrid, nextGeneration } from '@/utils/life'
 
 const dataMap = ref([
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -172,7 +172,13 @@ const generation = ref(0)
 let timerId: ReturnType<typeof setTimeout> | null = null
 
 const update = () => {
-  dataMap.value = nextGeneration(dataMap.value)
+  const next = nextGeneration(dataMap.value)
+  // Stop once the board no longer changes (all dead or only still lifes)
+  if (isSameGrid(next, dataMap.value)) {
+    stopStatus()
+    return
+  }
+  dataMap.value = next
   generation.value++
 
   timerId = setTimeout(update, interval.value)

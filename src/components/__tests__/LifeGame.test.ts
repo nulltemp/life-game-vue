@@ -146,4 +146,32 @@ describe('LifeGame.vue', () => {
       expect((input.element as HTMLInputElement).value).toBe('10')
     },
   )
+
+  it('does not start on an empty board', async () => {
+    const wrapper = mountLifeGame()
+    const button = (text: string) =>
+      wrapper.findAll('button').find((b) => b.text() === text)!
+    await button('Clear').trigger('click')
+
+    await button('start').trigger('click')
+    expect(button('start')).toBeDefined()
+    expect(wrapper.text()).toContain('Generation: 0')
+    expect(vi.getTimerCount()).toBe(0)
+  })
+
+  it('stops by itself once the board stops changing', async () => {
+    const wrapper = mountLifeGame()
+    const startButton = () =>
+      wrapper.findAll('button').find((b) => /start|stop/.test(b.text()))!
+
+    // In the 10x10 grid, the initial glider hits the bottom-right corner and
+    // settles into a 2x2 block (still life) after 27 generations
+    await startButton().trigger('click')
+    await vi.advanceTimersByTimeAsync(60_000)
+
+    expect(startButton().text()).toBe('start')
+    expect(wrapper.text()).toContain('Generation: 27')
+    expect(liveIndexes(wrapper)).toEqual([88, 89, 98, 99])
+    expect(vi.getTimerCount()).toBe(0)
+  })
 })

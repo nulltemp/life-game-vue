@@ -65,22 +65,6 @@ GitHub #10 から移行（2026-10-28 起票）
 - セルを `<button>` にし、`aria-pressed`（生死）と `aria-label`（例: 「3行目 5列目」）を付ける。100×100 ではフォーカスできる要素が 1 万個になるので、矢印キーで移動する roving tabindex の採用も検討する。
 - スライダーには `v-slider` の `label` prop か `aria-label` を使う。
 
-### 11. テストの不足（App のテストが import 確認のみ、E2E で未カバーの機能がある）
-
-GitHub #11 から移行（2026-10-28 起票）
-
-#### 現状
-- `src/components/__tests__/App.test.ts` は `App` を import できるかを確かめているだけ。
-- E2E テスト（`cypress/e2e/life-game.cy.ts`）で次の機能を確認していない:
-  - Random ボタン
-  - Clear ボタン（盤面が全部 `.death` になり、Generation が 0 に戻る）
-  - 実行中に Generation 表示が増えること
-  - 速度スライダー
-
-#### 修正案
-- `App.test.ts` を、マウントして `LifeGame` / `AboutGame` / `Note` が描画されることを確かめる内容にする。
-- 上の機能について E2E のケースを追加する。
-
 ### 13. SEO: og:image がなく、sitemap の lastmod が手動更新
 
 GitHub #13 から移行（2026-10-28 起票）
@@ -366,3 +350,22 @@ GitHub #12 から移行（2026-10-28 起票）
 
 #### 対応
 2026-11-18 対応（ブランチ `ccr-b473c45a-y0q6e0`）。`package.json` に `"type": "module"` を追加した。`vite build` で警告が出なくなったことを確認した。lint・型チェック・単体テスト・ビルド・開発サーバーの起動も問題なかった。設定ファイルは `vite.config.ts`・`cypress.config.ts`・`eslint.config.mjs` で、どれも ESM の書き方なので変更していない。E2E テスト（Cypress）は、作業した環境に Cypress 本体をダウンロードできず、未確認。
+
+### 11. テストの不足（App のテストが import 確認のみ、E2E で未カバーの機能がある）
+
+GitHub #11 から移行（2026-10-28 起票）
+
+#### 現状
+- `src/components/__tests__/App.test.ts` は `App` を import できるかを確かめているだけ。
+- E2E テスト（`cypress/e2e/life-game.cy.ts`）で次の機能を確認していない:
+  - Random ボタン
+  - Clear ボタン（盤面が全部 `.death` になり、Generation が 0 に戻る）
+  - 実行中に Generation 表示が増えること
+  - 速度スライダー
+
+#### 修正案
+- `App.test.ts` を、マウントして `LifeGame` / `AboutGame` / `Note` が描画されることを確かめる内容にする。
+- 上の機能について E2E のケースを追加する。
+
+#### 対応
+2026-11-19 対応（ブランチ `ccr-adba4eb2-hg8697`）。`App.test.ts` を、Vuetify 付きで `App` をマウントし、`LifeGame` / `AboutGame` / `Note` とそれぞれの中身が描画されることを確かめる内容にした。E2E テストに、実行中に Generation が増えること、Random（`Math.random` を固定して全セルが生きることと Generation が 0 に戻ること）、Clear（全セルが `.death` になり、Generation が 0 に戻って停止すること）、速度スライダー（キー操作で間隔の表示が変わること）のケースを追加した。作業した環境に Cypress 本体をダウンロードできなかったため、Cypress では未実行。同じ操作を Playwright でビルド済みのアプリに対して行い、期待どおりになることを確認した。

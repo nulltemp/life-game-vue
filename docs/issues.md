@@ -376,3 +376,15 @@ GitHub #7 から移行（2026-10-28 起票）
 - `vuetify/styles` を `App.vue` より後に読み込むと、ボタンの文字が小さくなるなど見た目が変わったため、先に読み込むようにした。幅 1280px と 390px で、変更前とスクリーンショットがピクセル単位で一致することを確認した。
 - lint・型チェック・単体テストが通ることを確認した。E2E テストは Cypress 本体をダウンロードできないため未実行で、同じ操作を Playwright でビルド済みのアプリに対して行って確認した。
 
+### 29. 開発サーバーで Vuetify の非推奨の警告が出る（`v-row` の `dense`）
+
+2026-11-20 起票
+
+#### 現象
+開発サーバーで開くと、コンソールに `[Vuetify UPGRADE] 'dense' is deprecated, use 'density="compact"' instead.` という警告が出る。
+
+#### 原因
+`src/components/LifeGame.vue` の Step・Random・Clear ボタンの行で、Vuetify 4 では非推奨の `<v-row dense>` を使っている。
+
+#### 対応
+2026-11-20 対応（ブランチ `ccr-adba4eb2-hg8697`）。`<v-row density="compact">` に変えた。警告が出なくなり、幅 1280px と 390px のスクリーンショットが変更前とピクセル単位で一致することを確認した。

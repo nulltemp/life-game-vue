@@ -1,21 +1,15 @@
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import App from './App.vue'
-
-// Vuetify
+// Vuetify: components and directives are imported on demand by
+// vite-plugin-vuetify (autoImport in vite.config.ts), so only the ones used are bundled.
+// Import the base styles before App, so the components' own CSS comes after them
 import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
 
-const vuetify = createVuetify({
-  components,
-  directives,
-})
+import { createApp } from 'vue'
+import App from './App.vue'
+
+const vuetify = createVuetify()
 
 const app = createApp(App)
-
-app.use(createPinia())
 
 app.use(vuetify)
 

@@ -1,8 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
 import App from '@/App.vue'
 import LifeGame from '@/components/LifeGame.vue'
 import AboutGame from '@/components/AboutGame.vue'
@@ -22,7 +20,7 @@ globalThis.ResizeObserver ??= class {
 describe('App.vue', () => {
   it('renders LifeGame, AboutGame and Note', () => {
     const wrapper = mount(App, {
-      global: { plugins: [createVuetify({ components, directives })] },
+      global: { plugins: [createVuetify()] },
     })
 
     expect(wrapper.findComponent(LifeGame).exists()).toBe(true)

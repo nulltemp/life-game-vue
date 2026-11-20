@@ -11,22 +11,6 @@
 
 ## 未対応
 
-### 7. バンドルサイズが 500kB を超えている（Vuetify の全 import と未使用の Pinia）
-
-GitHub #7 から移行（2026-10-28 起票）
-
-#### 現象
-`npm run build` で「Some chunks are larger than 500 kB after minification」という警告が出ます。
-
-#### 原因
-- `src/main.ts` で `vuetify/components` と `vuetify/directives` を丸ごと import しており、tree-shaking が効いていない。
-- Pinia を登録しているが store が1つもなく、使われていない。
-
-#### 修正案
-- `vite-plugin-vuetify` を導入して autoImport に切り替え、使っているコンポーネントだけを取り込む。
-  （コンポーネントテストも全コンポーネントを登録しているので、あわせて見直す）
-- Pinia の依存と `main.ts` での登録を削除する（CLAUDE.md の記述も更新）。
-
 ### 8. 大きいグリッド（100×100）で描画が重い
 
 GitHub #8 から移行（2026-10-28 起票）
@@ -369,3 +353,26 @@ GitHub #11 から移行（2026-10-28 起票）
 
 #### 対応
 2026-11-19 対応（ブランチ `ccr-adba4eb2-hg8697`）。`App.test.ts` を、Vuetify 付きで `App` をマウントし、`LifeGame` / `AboutGame` / `Note` とそれぞれの中身が描画されることを確かめる内容にした。E2E テストに、実行中に Generation が増えること、Random（`Math.random` を固定して全セルが生きることと Generation が 0 に戻ること）、Clear（全セルが `.death` になり、Generation が 0 に戻って停止すること）、速度スライダー（キー操作で間隔の表示が変わること）のケースを追加した。作業した環境に Cypress 本体をダウンロードできなかったため、Cypress では未実行。同じ操作を Playwright でビルド済みのアプリに対して行い、期待どおりになることを確認した。
+
+### 7. バンドルサイズが 500kB を超えている（Vuetify の全 import と未使用の Pinia）
+
+GitHub #7 から移行（2026-10-28 起票）
+
+#### 現象
+`npm run build` で「Some chunks are larger than 500 kB after minification」という警告が出ます。
+
+#### 原因
+- `src/main.ts` で `vuetify/components` と `vuetify/directives` を丸ごと import しており、tree-shaking が効いていない。
+- Pinia を登録しているが store が1つもなく、使われていない。
+
+#### 修正案
+- `vite-plugin-vuetify` を導入して autoImport に切り替え、使っているコンポーネントだけを取り込む。
+  （コンポーネントテストも全コンポーネントを登録しているので、あわせて見直す）
+- Pinia の依存と `main.ts` での登録を削除する（CLAUDE.md の記述も更新）。
+
+#### 対応
+2026-11-20 対応（ブランチ `ccr-adba4eb2-hg8697`）。`vite-plugin-vuetify` を追加して `autoImport` にし、`src/main.ts` での `vuetify/components`・`vuetify/directives` の全 import をやめた。Pinia の依存と登録を削除した。コンポーネントテストも `createVuetify()` だけでマウントするようにした（Vitest でも同じプラグインが効く）。
+- ビルド結果: JS 771 kB（gzip 249 kB）→ 251 kB（gzip 88 kB）、CSS 542 kB（gzip 73 kB）→ 320 kB（gzip 43 kB）。500 kB 超の警告は出なくなった。
+- `vuetify/styles` を `App.vue` より後に読み込むと、ボタンの文字が小さくなるなど見た目が変わったため、先に読み込むようにした。幅 1280px と 390px で、変更前とスクリーンショットがピクセル単位で一致することを確認した。
+- lint・型チェック・単体テストが通ることを確認した。E2E テストは Cypress 本体をダウンロードできないため未実行で、同じ操作を Playwright でビルド済みのアプリに対して行って確認した。
+

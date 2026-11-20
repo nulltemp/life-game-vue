@@ -11,22 +11,6 @@
 
 ## 未対応
 
-### 7. バンドルサイズが 500kB を超えている（Vuetify の全 import と未使用の Pinia）
-
-GitHub #7 から移行（2026-10-28 起票）
-
-#### 現象
-`npm run build` で「Some chunks are larger than 500 kB after minification」という警告が出ます。
-
-#### 原因
-- `src/main.ts` で `vuetify/components` と `vuetify/directives` を丸ごと import しており、tree-shaking が効いていない。
-- Pinia を登録しているが store が1つもなく、使われていない。
-
-#### 修正案
-- `vite-plugin-vuetify` を導入して autoImport に切り替え、使っているコンポーネントだけを取り込む。
-  （コンポーネントテストも全コンポーネントを登録しているので、あわせて見直す）
-- Pinia の依存と `main.ts` での登録を削除する（CLAUDE.md の記述も更新）。
-
 ### 8. 大きいグリッド（100×100）で描画が重い
 
 GitHub #8 から移行（2026-10-28 起票）
@@ -64,22 +48,6 @@ GitHub #10 から移行（2026-10-28 起票）
 #### 修正案
 - セルを `<button>` にし、`aria-pressed`（生死）と `aria-label`（例: 「3行目 5列目」）を付ける。100×100 ではフォーカスできる要素が 1 万個になるので、矢印キーで移動する roving tabindex の採用も検討する。
 - スライダーには `v-slider` の `label` prop か `aria-label` を使う。
-
-### 11. テストの不足（App のテストが import 確認のみ、E2E で未カバーの機能がある）
-
-GitHub #11 から移行（2026-10-28 起票）
-
-#### 現状
-- `src/components/__tests__/App.test.ts` は `App` を import できるかを確かめているだけ。
-- E2E テスト（`cypress/e2e/life-game.cy.ts`）で次の機能を確認していない:
-  - Random ボタン
-  - Clear ボタン（盤面が全部 `.death` になり、Generation が 0 に戻る）
-  - 実行中に Generation 表示が増えること
-  - 速度スライダー
-
-#### 修正案
-- `App.test.ts` を、マウントして `LifeGame` / `AboutGame` / `Note` が描画されることを確かめる内容にする。
-- 上の機能について E2E のケースを追加する。
 
 ### 13. SEO: og:image がなく、sitemap の lastmod が手動更新
 
@@ -127,24 +95,6 @@ Vuetify のテーマ変数を使う。例: `background: rgb(var(--v-theme-primar
 #### 修正案
 - `countNeighbors` / `nextGeneration` にラップするかどうかの引数を追加し、UI に切り替えスイッチを置く。単体テストも追加する。
 - グライダー、パルサー、グライダー銃などのプリセットを選んで盤面に配置できるようにする（盤面より大きいパターンの扱いは要検討）。
-
-### 現状
-`.box` の枠線は常に 1px。100×100 ではセルの幅が 3.77px で（#21 の影響で盤面の幅が 376.5px のとき）、左右の枠線を除いた中身は約 1.8px しかない。#21 を直して盤面が 500px に広がっても、中身は約 3px。
-
-#### 修正案
-セルが小さいときは枠線を消す。例: `columns` と行数の大きいほうがしきい値を超えたら、`.map` にクラスを付けて `.box` の枠線をなくす。
-
-### 現状
-`.box` の `transition: background-color 0.2s ease` は 0.2 秒かかるが、更新間隔は最短 0.1 秒なので、次の世代までに色が変わりきらない（コードからの判断で、実際の見え方は未確認）。
-
-#### 修正案
-間隔が短いときは transition をなくす。または transition 自体を削除する。100×100 の描画負荷（#8）も軽くなる可能性がある。
-
-### 現象
-`vite build` や Vitest の実行時に、`vite.config.ts` が CommonJS として読み込まれているという警告（`configLoader: 'native'` が将来既定になるときに問題になる書き方）が出る。
-
-#### 修正案
-`package.json` に `"type": "module"` を追加する（解消するかは未確認）。他の設定ファイルへの影響も確認する。
 
 ### 28. 依存パッケージに脆弱性がある（minimatch・glob・picomatch）
 
@@ -350,7 +300,11 @@ GitHub #12 から移行（2026-10-28 起票）
 
 2026-10-30 起票
 
-#
+#### 現状
+`.box` の枠線は常に 1px。100×100 ではセルの幅が 3.77px で（#21 の影響で盤面の幅が 376.5px のとき）、左右の枠線を除いた中身は約 1.8px しかない。#21 を直して盤面が 500px に広がっても、中身は約 3px。
+
+#### 修正案
+セルが小さいときは枠線を消す。例: `columns` と行数の大きいほうがしきい値を超えたら、`.map` にクラスを付けて `.box` の枠線をなくす。
 
 #### 対応
 2026-11-18 対応（ブランチ `ccr-b473c45a-y0q6e0`）。縦か横のどちらかが 40 セル（`DENSE_SIZE`）を超えたら、`.map` に `no-border` クラスを付けて `.box` の枠線を消すようにした。幅 1024px の画面で、40×40 はセルの幅 12.5px（枠線あり）、41×41 は 12.2px（枠線なし）、100×100 は 5px（枠線なし、中身も 5px）になることをブラウザで確認した。コンポーネントテストも追加した。
@@ -359,7 +313,11 @@ GitHub #12 から移行（2026-10-28 起票）
 
 2026-10-30 起票
 
-#
+#### 現状
+`.box` の `transition: background-color 0.2s ease` は 0.2 秒かかるが、更新間隔は最短 0.1 秒なので、次の世代までに色が変わりきらない（コードからの判断で、実際の見え方は未確認）。
+
+#### 修正案
+間隔が短いときは transition をなくす。または transition 自体を削除する。100×100 の描画負荷（#8）も軽くなる可能性がある。
 
 #### 対応
 2026-11-18 対応（ブランチ `ccr-b473c45a-y0q6e0`）。`.box` の `transition` を削除した。
@@ -368,7 +326,65 @@ GitHub #12 から移行（2026-10-28 起票）
 
 2026-10-30 起票
 
-#
+#### 現象
+`vite build` や Vitest の実行時に、`vite.config.ts` が CommonJS として読み込まれているという警告（`configLoader: 'native'` が将来既定になるときに問題になる書き方）が出る。
+
+#### 修正案
+`package.json` に `"type": "module"` を追加する（解消するかは未確認）。他の設定ファイルへの影響も確認する。
 
 #### 対応
 2026-11-18 対応（ブランチ `ccr-b473c45a-y0q6e0`）。`package.json` に `"type": "module"` を追加した。`vite build` で警告が出なくなったことを確認した。lint・型チェック・単体テスト・ビルド・開発サーバーの起動も問題なかった。設定ファイルは `vite.config.ts`・`cypress.config.ts`・`eslint.config.mjs` で、どれも ESM の書き方なので変更していない。E2E テスト（Cypress）は、作業した環境に Cypress 本体をダウンロードできず、未確認。
+
+### 11. テストの不足（App のテストが import 確認のみ、E2E で未カバーの機能がある）
+
+GitHub #11 から移行（2026-10-28 起票）
+
+#### 現状
+- `src/components/__tests__/App.test.ts` は `App` を import できるかを確かめているだけ。
+- E2E テスト（`cypress/e2e/life-game.cy.ts`）で次の機能を確認していない:
+  - Random ボタン
+  - Clear ボタン（盤面が全部 `.death` になり、Generation が 0 に戻る）
+  - 実行中に Generation 表示が増えること
+  - 速度スライダー
+
+#### 修正案
+- `App.test.ts` を、マウントして `LifeGame` / `AboutGame` / `Note` が描画されることを確かめる内容にする。
+- 上の機能について E2E のケースを追加する。
+
+#### 対応
+2026-11-19 対応（ブランチ `ccr-adba4eb2-hg8697`）。`App.test.ts` を、Vuetify 付きで `App` をマウントし、`LifeGame` / `AboutGame` / `Note` とそれぞれの中身が描画されることを確かめる内容にした。E2E テストに、実行中に Generation が増えること、Random（`Math.random` を固定して全セルが生きることと Generation が 0 に戻ること）、Clear（全セルが `.death` になり、Generation が 0 に戻って停止すること）、速度スライダー（キー操作で間隔の表示が変わること）のケースを追加した。作業した環境に Cypress 本体をダウンロードできなかったため、Cypress では未実行。同じ操作を Playwright でビルド済みのアプリに対して行い、期待どおりになることを確認した。
+
+### 7. バンドルサイズが 500kB を超えている（Vuetify の全 import と未使用の Pinia）
+
+GitHub #7 から移行（2026-10-28 起票）
+
+#### 現象
+`npm run build` で「Some chunks are larger than 500 kB after minification」という警告が出ます。
+
+#### 原因
+- `src/main.ts` で `vuetify/components` と `vuetify/directives` を丸ごと import しており、tree-shaking が効いていない。
+- Pinia を登録しているが store が1つもなく、使われていない。
+
+#### 修正案
+- `vite-plugin-vuetify` を導入して autoImport に切り替え、使っているコンポーネントだけを取り込む。
+  （コンポーネントテストも全コンポーネントを登録しているので、あわせて見直す）
+- Pinia の依存と `main.ts` での登録を削除する（CLAUDE.md の記述も更新）。
+
+#### 対応
+2026-11-20 対応（ブランチ `ccr-adba4eb2-hg8697`）。`vite-plugin-vuetify` を追加して `autoImport` にし、`src/main.ts` での `vuetify/components`・`vuetify/directives` の全 import をやめた。Pinia の依存と登録を削除した。コンポーネントテストも `createVuetify()` だけでマウントするようにした（Vitest でも同じプラグインが効く）。
+- ビルド結果: JS 771 kB（gzip 249 kB）→ 251 kB（gzip 88 kB）、CSS 542 kB（gzip 73 kB）→ 320 kB（gzip 43 kB）。500 kB 超の警告は出なくなった。
+- `vuetify/styles` を `App.vue` より後に読み込むと、ボタンの文字が小さくなるなど見た目が変わったため、先に読み込むようにした。幅 1280px と 390px で、変更前とスクリーンショットがピクセル単位で一致することを確認した。
+- lint・型チェック・単体テストが通ることを確認した。E2E テストは Cypress 本体をダウンロードできないため未実行で、同じ操作を Playwright でビルド済みのアプリに対して行って確認した。
+
+### 29. 開発サーバーで Vuetify の非推奨の警告が出る（`v-row` の `dense`）
+
+2026-11-20 起票
+
+#### 現象
+開発サーバーで開くと、コンソールに `[Vuetify UPGRADE] 'dense' is deprecated, use 'density="compact"' instead.` という警告が出る。
+
+#### 原因
+`src/components/LifeGame.vue` の Step・Random・Clear ボタンの行で、Vuetify 4 では非推奨の `<v-row dense>` を使っている。
+
+#### 対応
+2026-11-20 対応（ブランチ `ccr-adba4eb2-hg8697`）。`<v-row density="compact">` に変えた。警告が出なくなり、幅 1280px と 390px のスクリーンショットが変更前とピクセル単位で一致することを確認した。

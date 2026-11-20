@@ -65,6 +65,50 @@ describe('Life Game E2E Tests', () => {
     cy.contains('start').should('be.visible')
   })
 
+  it('should increase the generation while running', () => {
+    cy.contains('Generation: 0').should('be.visible')
+    cy.contains('button', 'start').click()
+    // Start advances one generation at once, then one per interval (1.0s by default)
+    cy.contains('Generation: 2').should('be.visible')
+    cy.contains('button', 'stop').click()
+  })
+
+  it('should fill the grid randomly with Random', () => {
+    // Make Math.random deterministic: < 0.5 means alive, so every cell comes alive
+    cy.window().then((win) => {
+      cy.stub(win.Math, 'random').returns(0.1)
+    })
+    cy.contains('button', 'Step').click()
+    cy.contains('Generation: 1').should('be.visible')
+
+    cy.contains('button', 'Random').click()
+    cy.get('.box.live').should('have.length', 100)
+    cy.contains('Generation: 0').should('be.visible')
+  })
+
+  it('should clear the grid and reset the generation with Clear', () => {
+    cy.contains('button', 'start').click()
+    cy.contains('Generation: 1').should('be.visible')
+
+    cy.contains('button', 'Clear').click()
+    cy.get('.box.live').should('have.length', 0)
+    cy.get('.box.death').should('have.length', 100)
+    cy.contains('Generation: 0').should('be.visible')
+    // Clear also stops the simulation
+    cy.contains('button', 'start').should('be.visible')
+  })
+
+  it('should change the generation interval with the slider', () => {
+    cy.contains('Generation Interval: 1.0s').should('be.visible')
+    cy.get('.v-slider-thumb').as('thumb')
+    cy.get('@thumb').focus()
+    cy.get('@thumb').type('{leftArrow}')
+    cy.contains('Generation Interval: 0.9s').should('be.visible')
+    cy.get('@thumb').type('{home}')
+    cy.contains('Generation Interval: 0.1s').should('be.visible')
+    cy.get('@thumb').should('have.attr', 'aria-valuenow', '100')
+  })
+
   it('should have working GitHub link', () => {
     cy.get('a[href*="github.com"]').should('have.attr', 'target', '_blank')
   })

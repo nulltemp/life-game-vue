@@ -68,7 +68,7 @@
       >
         {{ startButtonMessage }}
       </v-btn>
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="4">
           <v-btn @click="stepOnce" size="large" variant="outlined" block>
             Step

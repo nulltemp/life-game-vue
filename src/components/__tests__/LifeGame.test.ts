@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createVuetify } from 'vuetify'
-import * as components from 'vuetify/components'
-import * as directives from 'vuetify/directives'
 import LifeGame from '@/components/LifeGame.vue'
 
 // Mock CSS
@@ -18,7 +16,7 @@ globalThis.ResizeObserver ??= class {
 
 const mountLifeGame = () =>
   mount(LifeGame, {
-    global: { plugins: [createVuetify({ components, directives })] },
+    global: { plugins: [createVuetify()] },
   })
 
 const liveIndexes = (wrapper: ReturnType<typeof mountLifeGame>) =>

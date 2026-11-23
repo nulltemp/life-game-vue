@@ -86,6 +86,12 @@
         </v-col>
       </v-row>
       <div class="text-center mt-2">Generation: {{ generation }}</div>
+      <!-- Always rendered so screen readers pick up the message when it appears -->
+      <div class="text-center text-medium-emphasis" role="status">
+        <span v-if="isUnchanging" class="unchanging-message">{{
+          UNCHANGING_MESSAGE
+        }}</span>
+      </div>
     </v-card-text>
   </v-card>
 </template>
@@ -143,10 +149,12 @@ const clampSize = (value: number | string, current: number): number => {
 }
 
 const changeDataMapValue = (i: number, j: number) => {
+  isUnchanging.value = false
   dataMap.value[i][j] = dataMap.value[i][j] === 1 ? 0 : 1
 }
 
 const changeDataMapSize = () => {
+  isUnchanging.value = false
   width.value = clampSize(width.value, dataMap.value[0].length)
   height.value = clampSize(height.value, dataMap.value.length)
 
@@ -182,6 +190,10 @@ const changeDataMapSize = () => {
 const isStarted = ref(false)
 const startButtonMessage = computed(() => (isStarted.value ? 'stop' : 'start'))
 const generation = ref(0)
+// Shown when Start/Step found (or a running simulation reached) a board whose
+// next generation is the same; cleared whenever the board is edited
+const UNCHANGING_MESSAGE = 'The board is no longer changing.'
+const isUnchanging = ref(false)
 let timerId: ReturnType<typeof setTimeout> | null = null
 
 // Advances one generation. Returns false (and leaves the board and counter
@@ -189,8 +201,10 @@ let timerId: ReturnType<typeof setTimeout> | null = null
 const step = (): boolean => {
   const next = nextGeneration(dataMap.value)
   if (isSameGrid(next, dataMap.value)) {
+    isUnchanging.value = true
     return false
   }
+  isUnchanging.value = false
   dataMap.value = next
   generation.value++
   return true
@@ -234,6 +248,7 @@ onUnmounted(() => stopStatus())
 
 const randomize = () => {
   stopStatus()
+  isUnchanging.value = false
   for (let i = 0; i < dataMap.value.length; i++) {
     for (let j = 0; j < dataMap.value[i].length; j++) {
       dataMap.value[i][j] = Math.random() < 0.5 ? 1 : 0
@@ -244,6 +259,7 @@ const randomize = () => {
 
 const clear = () => {
   stopStatus()
+  isUnchanging.value = false
   for (let i = 0; i < dataMap.value.length; i++) {
     for (let j = 0; j < dataMap.value[i].length; j++) {
       dataMap.value[i][j] = 0

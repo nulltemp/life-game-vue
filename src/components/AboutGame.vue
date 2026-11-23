@@ -21,7 +21,10 @@
         <li>Change Height and Width to resize the grid (up to 100 × 100).</li>
         <li>Press Start to run the simulation and Stop to pause it.</li>
         <li>Press Step to advance one generation at a time.</li>
-        <li>The simulation stops by itself once the board stops changing.</li>
+        <li>
+          The simulation stops by itself once the board stops changing, and a
+          message says so (Start and Step show it too on such a board).
+        </li>
       </ul>
     </v-card-text>
   </v-card>

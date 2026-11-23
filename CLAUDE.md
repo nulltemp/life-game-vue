@@ -53,5 +53,5 @@ This is a small single-page Vue 3 + Vuetify + TypeScript app implementing Conway
 
 ## Issue tracking
 
-- Issues (bugs, improvement ideas, open questions) are tracked in `docs/issues.md`, **not** GitHub Issues. When asked to record an issue (e.g. 「課題を記録して」), add it to `docs/issues.md` following the format described at the top of that file; do not create a GitHub issue.
-- When an issue is resolved, move it to the 「対応済み」 section with the date and commit/PR.
+- Issues (bugs, improvement ideas, open questions) are tracked in **GitHub Issues** on nulltemp/life-game-vue. When asked to record an issue (e.g. 「課題を記録して」), create a GitHub issue (in Japanese, with 現状 / 修正案 sections like the existing ones).
+- When an issue is resolved, close it and mention the commit/PR. (Until 2026-11-23 issues were kept in `docs/issues.md`; the resolved ones are in its git history.)

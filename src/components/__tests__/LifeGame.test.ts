@@ -14,6 +14,8 @@ globalThis.ResizeObserver ??= class {
   disconnect() {}
 }
 
+const UNCHANGING = 'The board is no longer changing.'
+
 const mountLifeGame = () =>
   mount(LifeGame, {
     global: { plugins: [createVuetify()] },
@@ -151,10 +153,17 @@ describe('LifeGame.vue', () => {
       wrapper.findAll('button').find((b) => b.text() === text)!
     await button('Clear').trigger('click')
 
+    expect(wrapper.text()).not.toContain(UNCHANGING)
     await button('start').trigger('click')
     expect(button('start')).toBeDefined()
     expect(wrapper.text()).toContain('Generation: 0')
     expect(vi.getTimerCount()).toBe(0)
+    // Pressing Start did something visible: it says why nothing happened
+    expect(wrapper.find('[role="status"]').text()).toBe(UNCHANGING)
+
+    // Editing the board hides the message again
+    await wrapper.findAll('.box')[0].trigger('click')
+    expect(wrapper.text()).not.toContain(UNCHANGING)
   })
 
   it('stops by itself once the board stops changing', async () => {
@@ -171,6 +180,17 @@ describe('LifeGame.vue', () => {
     expect(wrapper.text()).toContain('Generation: 27')
     expect(liveIndexes(wrapper)).toEqual([88, 89, 98, 99])
     expect(vi.getTimerCount()).toBe(0)
+    expect(wrapper.text()).toContain(UNCHANGING)
+  })
+
+  it('does not show the message while the board keeps changing', async () => {
+    const wrapper = mountLifeGame()
+    const button = (text: string) =>
+      wrapper.findAll('button').find((b) => b.text() === text)!
+
+    await button('start').trigger('click')
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(wrapper.text()).not.toContain(UNCHANGING)
   })
 
   it('advances exactly one generation on Step', async () => {
@@ -213,6 +233,10 @@ describe('LifeGame.vue', () => {
 
     await button('Step').trigger('click')
     expect(wrapper.text()).toContain('Generation: 0')
+    expect(wrapper.text()).toContain(UNCHANGING)
+
+    await button('Random').trigger('click')
+    expect(wrapper.text()).not.toContain(UNCHANGING)
   })
 
   it.each([

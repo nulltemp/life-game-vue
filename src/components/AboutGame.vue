@@ -16,9 +16,15 @@
       </ul>
       <h3 class="text-subtitle-1 font-weight-bold mb-2">How to play</h3>
       <ul class="pl-6">
-        <li>Click a cell to toggle it between alive and dead.</li>
+        <li>
+          Click a cell to toggle it between alive and dead, or drag across the
+          board to draw (starting on a live cell erases instead).
+        </li>
         <li>Use Random to fill the board, or Clear to start over.</li>
-        <li>Change Height and Width to resize the grid (up to 100 × 100).</li>
+        <li>
+          Change Height and Width to resize the grid (up to 100 × 100); this
+          resets the generation counter.
+        </li>
         <li>Press Start to run the simulation and Stop to pause it.</li>
         <li>Press Step to advance one generation at a time.</li>
         <li>

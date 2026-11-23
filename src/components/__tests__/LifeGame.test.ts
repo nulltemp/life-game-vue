@@ -44,15 +44,47 @@ describe('LifeGame.vue', () => {
     expect(liveIndexes(wrapper)).toEqual([12, 23, 31, 32, 33])
   })
 
-  it('toggles a cell on click', async () => {
+  it('toggles a cell on press', async () => {
     const wrapper = mountLifeGame()
-    const first = wrapper.findAll('.box')[0]
-    expect(first.classes()).toContain('death')
+    const press = async (index: number) => {
+      await wrapper.findAll('.box')[index].trigger('pointerdown')
+      window.dispatchEvent(new Event('pointerup'))
+    }
+    expect(wrapper.findAll('.box')[0].classes()).toContain('death')
 
-    await first.trigger('click')
+    await press(0)
     expect(wrapper.findAll('.box')[0].classes()).toContain('live')
 
-    await wrapper.findAll('.box')[0].trigger('click')
+    await press(0)
+    expect(wrapper.findAll('.box')[0].classes()).toContain('death')
+  })
+
+  it("paints every cell dragged over with the pressed cell's new value", async () => {
+    const wrapper = mountLifeGame()
+    const box = (index: number) => wrapper.findAll('.box')[index]
+
+    // Drawing: start on a dead cell, so the whole drag makes cells alive,
+    // including one that was already alive (12) which must stay alive
+    await box(10).trigger('pointerdown')
+    for (const index of [11, 12, 13]) {
+      await box(index).trigger('pointermove')
+    }
+    window.dispatchEvent(new Event('pointerup'))
+    // Moving after release paints nothing
+    await box(14).trigger('pointermove')
+    expect(liveIndexes(wrapper)).toEqual([10, 11, 12, 13, 23, 31, 32, 33])
+
+    // Erasing: start on a live cell, so the drag kills cells
+    await box(31).trigger('pointerdown')
+    await box(32).trigger('pointermove')
+    await box(33).trigger('pointermove')
+    window.dispatchEvent(new Event('pointercancel'))
+    expect(liveIndexes(wrapper)).toEqual([10, 11, 12, 13, 23])
+  })
+
+  it('ignores presses with a non-primary button', async () => {
+    const wrapper = mountLifeGame()
+    await wrapper.findAll('.box')[0].trigger('pointerdown', { button: 2 })
     expect(wrapper.findAll('.box')[0].classes()).toContain('death')
   })
 
@@ -126,6 +158,28 @@ describe('LifeGame.vue', () => {
     expect(wrapper.findAll('.box')).toHaveLength(50)
   })
 
+  it('resets the generation counter when the grid is resized', async () => {
+    const wrapper = mountLifeGame()
+    const button = (text: string) =>
+      wrapper.findAll('button').find((b) => b.text() === text)!
+    const widthInput = wrapper
+      .findAll('.v-text-field')
+      .find((field) => field.text().includes('Width'))!
+      .find('input')
+
+    await button('Step').trigger('click')
+    await button('Step').trigger('click')
+    expect(wrapper.text()).toContain('Generation: 2')
+
+    // Committing the current size again changes nothing
+    await widthInput.setValue('10')
+    expect(wrapper.text()).toContain('Generation: 2')
+
+    await widthInput.setValue('12')
+    expect(wrapper.findAll('.box')).toHaveLength(120)
+    expect(wrapper.text()).toContain('Generation: 0')
+  })
+
   it.each(['Height', 'Width'])(
     'keeps the grid and restores the size when %s is left blank',
     async (label) => {
@@ -162,7 +216,8 @@ describe('LifeGame.vue', () => {
     expect(wrapper.find('[role="status"]').text()).toBe(UNCHANGING)
 
     // Editing the board hides the message again
-    await wrapper.findAll('.box')[0].trigger('click')
+    await wrapper.findAll('.box')[0].trigger('pointerdown')
+    window.dispatchEvent(new Event('pointerup'))
     expect(wrapper.text()).not.toContain(UNCHANGING)
   })
 

@@ -6,7 +6,7 @@ A modern implementation of Conway's Game of Life using Vue 3, Vuetify, and TypeS
 
 ## Features
 
-- **Interactive Grid**: Click cells to toggle their state (alive/dead)
+- **Interactive Grid**: Click cells to toggle their state (alive/dead), or drag to draw/erase several at once
 - **Dynamic Resizing**: Adjust grid height and width in real-time
 - **Simulation Controls**: Start/stop the evolution with customizable generation intervals
 - **Responsive Design**: Built with Vuetify for a modern Material Design UI
@@ -15,7 +15,7 @@ A modern implementation of Conway's Game of Life using Vue 3, Vuetify, and TypeS
 
 ## How to Play
 
-1. Click on grid cells to set initial living cells (blue = alive, white = dead)
+1. Click on grid cells to set initial living cells (blue = alive, white = dead), or drag across them to draw (dragging from a live cell erases)
 2. Adjust grid dimensions using the Height and Width inputs
 3. Set the generation interval speed (0.1s to 1.0s)
 4. Click "Start" to begin the simulation

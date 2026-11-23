@@ -9,12 +9,15 @@
           gridTemplateColumns: `repeat(${columns}, 1fr)`,
           maxWidth: `${mapMaxWidth}px`,
         }"
+        @pointerdown="startPaint"
+        @pointermove="continuePaint"
       >
         <template v-for="(dataList, i) in dataMap" :key="i">
           <template v-for="(data, j) in dataList" :key="j">
             <div
               class="box"
-              @click="changeDataMapValue(i, j)"
+              :data-i="i"
+              :data-j="j"
               :class="data === 1 ? 'live' : 'death'"
             ></div>
           </template>
@@ -97,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { isSameGrid, nextGeneration } from '@/utils/life'
 
 const dataMap = ref([
@@ -148,15 +151,86 @@ const clampSize = (value: number | string, current: number): number => {
   return Math.min(Math.max(Math.trunc(size), MIN_SIZE), MAX_SIZE)
 }
 
-const changeDataMapValue = (i: number, j: number) => {
-  isUnchanging.value = false
-  dataMap.value[i][j] = dataMap.value[i][j] === 1 ? 0 : 1
+// Drag painting: pressing on a cell flips it, and every cell the pointer then
+// passes over while still pressed gets that same value, until it is released.
+// A single pair of handlers on .map finds the cell under the pointer, so cells
+// need no listeners of their own
+let paintValue: number | null = null
+
+// The cell under the pointer. Touch pointers stay captured by the element they
+// went down on, so look it up by position rather than trusting event.target
+const cellAt = (event: PointerEvent): [number, number] | null => {
+  const hit =
+    typeof document.elementFromPoint === 'function'
+      ? document.elementFromPoint(event.clientX, event.clientY)
+      : null
+  const element = (hit ?? event.target) as HTMLElement | null
+  const i = Number(element?.dataset?.i)
+  const j = Number(element?.dataset?.j)
+  if (!Number.isInteger(i) || !Number.isInteger(j) || !dataMap.value[i]) {
+    return null
+  }
+  return j < dataMap.value[i].length ? [i, j] : null
 }
+
+const paintCell = (i: number, j: number, value: number) => {
+  if (dataMap.value[i][j] === value) {
+    return
+  }
+  isUnchanging.value = false
+  dataMap.value[i][j] = value
+}
+
+const startPaint = (event: PointerEvent) => {
+  // Only the primary button draws (touch and pen report 0 too)
+  if (event.button > 0) {
+    return
+  }
+  const cell = cellAt(event)
+  if (!cell) {
+    return
+  }
+  const [i, j] = cell
+  paintValue = dataMap.value[i][j] === 1 ? 0 : 1
+  paintCell(i, j, paintValue)
+}
+
+const continuePaint = (event: PointerEvent) => {
+  if (paintValue === null) {
+    return
+  }
+  const cell = cellAt(event)
+  if (cell) {
+    paintCell(cell[0], cell[1], paintValue)
+  }
+}
+
+// Listen on window so releasing the pointer outside the board also ends it
+const endPaint = () => {
+  paintValue = null
+}
+onMounted(() => {
+  window.addEventListener('pointerup', endPaint)
+  window.addEventListener('pointercancel', endPaint)
+})
+onUnmounted(() => {
+  window.removeEventListener('pointerup', endPaint)
+  window.removeEventListener('pointercancel', endPaint)
+})
 
 const changeDataMapSize = () => {
   isUnchanging.value = false
   width.value = clampSize(width.value, dataMap.value[0].length)
   height.value = clampSize(height.value, dataMap.value.length)
+
+  // A resize changes the board (cells may be cut off), so restart the count
+  // like Random and Clear do; committing the same size keeps it
+  if (
+    width.value !== dataMap.value[0].length ||
+    height.value !== dataMap.value.length
+  ) {
+    generation.value = 0
+  }
 
   if (width.value !== dataMap.value[0].length) {
     for (let i = 0; i < dataMap.value.length; i++) {
@@ -272,6 +346,9 @@ const clear = () => {
 <style scoped>
 .map {
   display: grid;
+  /* Dragging on the board draws instead of scrolling the page */
+  touch-action: none;
+  user-select: none;
   gap: 0px;
   margin: 0 auto 24px;
 }
@@ -286,8 +363,11 @@ const clear = () => {
   border: none;
 }
 
-.box:hover {
-  opacity: 0.8;
+/* Only on devices that really hover: on touch, :hover sticks after a tap */
+@media (hover: hover) {
+  .box:hover {
+    opacity: 0.8;
+  }
 }
 
 .live {

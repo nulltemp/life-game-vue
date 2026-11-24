@@ -100,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { isSameGrid, nextGeneration } from '@/utils/life'
 
 const dataMap = ref([
@@ -262,7 +262,7 @@ const changeDataMapSize = () => {
 }
 
 const isStarted = ref(false)
-const startButtonMessage = computed(() => (isStarted.value ? 'stop' : 'start'))
+const startButtonMessage = computed(() => (isStarted.value ? 'Stop' : 'Start'))
 const generation = ref(0)
 // Shown when Start/Step found (or a running simulation reached) a board whose
 // next generation is the same; cleared whenever the board is edited
@@ -291,6 +291,16 @@ const update = () => {
   }
   timerId = setTimeout(update, interval.value)
 }
+
+// Moving the Generation Interval slider while running reschedules the pending
+// generation with the new interval, instead of waiting out the old one
+watch(interval, () => {
+  if (!isStarted.value || timerId === null) {
+    return
+  }
+  clearTimeout(timerId)
+  timerId = setTimeout(update, interval.value)
+})
 
 const changeStartStatus = () => {
   isStarted.value = !isStarted.value

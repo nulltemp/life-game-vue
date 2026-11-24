@@ -53,24 +53,24 @@ describe('Life Game E2E Tests', () => {
   })
 
   it('should start and stop simulation', () => {
-    // Initially button should say "start"
-    cy.contains('start').should('be.visible')
+    // Initially button should say "Start"
+    cy.contains('button', 'Start').should('be.visible')
 
     // Click to start
-    cy.contains('start').click()
-    cy.contains('stop').should('be.visible')
+    cy.contains('button', 'Start').click()
+    cy.contains('button', 'Stop').should('be.visible')
 
     // Click to stop
-    cy.contains('stop').click()
-    cy.contains('start').should('be.visible')
+    cy.contains('button', 'Stop').click()
+    cy.contains('button', 'Start').should('be.visible')
   })
 
   it('should increase the generation while running', () => {
     cy.contains('Generation: 0').should('be.visible')
-    cy.contains('button', 'start').click()
+    cy.contains('button', 'Start').click()
     // Start advances one generation at once, then one per interval (1.0s by default)
     cy.contains('Generation: 2').should('be.visible')
-    cy.contains('button', 'stop').click()
+    cy.contains('button', 'Stop').click()
   })
 
   it('should fill the grid randomly with Random', () => {
@@ -87,7 +87,7 @@ describe('Life Game E2E Tests', () => {
   })
 
   it('should clear the grid and reset the generation with Clear', () => {
-    cy.contains('button', 'start').click()
+    cy.contains('button', 'Start').click()
     cy.contains('Generation: 1').should('be.visible')
 
     cy.contains('button', 'Clear').click()
@@ -95,7 +95,7 @@ describe('Life Game E2E Tests', () => {
     cy.get('.box.death').should('have.length', 100)
     cy.contains('Generation: 0').should('be.visible')
     // Clear also stops the simulation
-    cy.contains('button', 'start').should('be.visible')
+    cy.contains('button', 'Start').should('be.visible')
   })
 
   it('should change the generation interval with the slider', () => {

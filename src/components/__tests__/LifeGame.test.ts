@@ -91,10 +91,10 @@ describe('LifeGame.vue', () => {
   it('advances generations while started and stops on stop', async () => {
     const wrapper = mountLifeGame()
     const startButton = () =>
-      wrapper.findAll('button').find((b) => /start|stop/.test(b.text()))!
+      wrapper.findAll('button').find((b) => /^(Start|Stop)$/.test(b.text()))!
 
     await startButton().trigger('click')
-    expect(startButton().text()).toBe('stop')
+    expect(startButton().text()).toBe('Stop')
     expect(wrapper.text()).toContain('Generation: 1')
     // Glider after 1 generation
     expect(liveIndexes(wrapper)).toEqual([21, 23, 32, 33, 42])
@@ -103,16 +103,50 @@ describe('LifeGame.vue', () => {
     expect(wrapper.text()).toContain('Generation: 2')
 
     await startButton().trigger('click')
-    expect(startButton().text()).toBe('start')
+    expect(startButton().text()).toBe('Start')
     await vi.advanceTimersByTimeAsync(5000)
     expect(wrapper.text()).toContain('Generation: 2')
+  })
+
+  it('applies a new interval to the pending generation while running', async () => {
+    const wrapper = mountLifeGame()
+    const startButton = wrapper
+      .findAll('button')
+      .find((b) => b.text() === 'Start')!
+    await startButton.trigger('click')
+    expect(wrapper.text()).toContain('Generation: 1')
+
+    // Shorten the interval from 1.0s to 0.1s right after a generation
+    wrapper
+      .findComponent({ name: 'VSlider' })
+      .vm.$emit('update:modelValue', 100)
+    await wrapper.vm.$nextTick()
+    // Still a single loop, not a second one next to the old timer
+    expect(vi.getTimerCount()).toBe(1)
+
+    await vi.advanceTimersByTimeAsync(100)
+    expect(wrapper.text()).toContain('Generation: 2')
+    await vi.advanceTimersByTimeAsync(100)
+    expect(wrapper.text()).toContain('Generation: 3')
+    expect(vi.getTimerCount()).toBe(1)
+  })
+
+  it('does not start the simulation when the interval changes while stopped', async () => {
+    const wrapper = mountLifeGame()
+    wrapper
+      .findComponent({ name: 'VSlider' })
+      .vm.$emit('update:modelValue', 100)
+    await wrapper.vm.$nextTick()
+    expect(vi.getTimerCount()).toBe(0)
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(wrapper.text()).toContain('Generation: 0')
   })
 
   it('stops the simulation timer on unmount', async () => {
     const wrapper = mountLifeGame()
     const startButton = wrapper
       .findAll('button')
-      .find((b) => b.text() === 'start')!
+      .find((b) => b.text() === 'Start')!
     await startButton.trigger('click')
     expect(vi.getTimerCount()).toBe(1)
 
@@ -124,7 +158,7 @@ describe('LifeGame.vue', () => {
     const wrapper = mountLifeGame()
     const startButton = wrapper
       .findAll('button')
-      .find((b) => b.text() === 'start')!
+      .find((b) => b.text() === 'Start')!
     await startButton.trigger('click')
 
     const clearButton = wrapper
@@ -208,8 +242,8 @@ describe('LifeGame.vue', () => {
     await button('Clear').trigger('click')
 
     expect(wrapper.text()).not.toContain(UNCHANGING)
-    await button('start').trigger('click')
-    expect(button('start')).toBeDefined()
+    await button('Start').trigger('click')
+    expect(button('Start')).toBeDefined()
     expect(wrapper.text()).toContain('Generation: 0')
     expect(vi.getTimerCount()).toBe(0)
     // Pressing Start did something visible: it says why nothing happened
@@ -224,14 +258,14 @@ describe('LifeGame.vue', () => {
   it('stops by itself once the board stops changing', async () => {
     const wrapper = mountLifeGame()
     const startButton = () =>
-      wrapper.findAll('button').find((b) => /start|stop/.test(b.text()))!
+      wrapper.findAll('button').find((b) => /^(Start|Stop)$/.test(b.text()))!
 
     // In the 10x10 grid, the initial glider hits the bottom-right corner and
     // settles into a 2x2 block (still life) after 27 generations
     await startButton().trigger('click')
     await vi.advanceTimersByTimeAsync(60_000)
 
-    expect(startButton().text()).toBe('start')
+    expect(startButton().text()).toBe('Start')
     expect(wrapper.text()).toContain('Generation: 27')
     expect(liveIndexes(wrapper)).toEqual([88, 89, 98, 99])
     expect(vi.getTimerCount()).toBe(0)
@@ -243,7 +277,7 @@ describe('LifeGame.vue', () => {
     const button = (text: string) =>
       wrapper.findAll('button').find((b) => b.text() === text)!
 
-    await button('start').trigger('click')
+    await button('Start').trigger('click')
     await vi.advanceTimersByTimeAsync(5000)
     expect(wrapper.text()).not.toContain(UNCHANGING)
   })
@@ -256,7 +290,7 @@ describe('LifeGame.vue', () => {
     await button('Step').trigger('click')
     expect(wrapper.text()).toContain('Generation: 1')
     expect(liveIndexes(wrapper)).toEqual([21, 23, 32, 33, 42])
-    expect(button('start')).toBeDefined()
+    expect(button('Start')).toBeDefined()
     expect(vi.getTimerCount()).toBe(0)
 
     await button('Step').trigger('click')
@@ -268,12 +302,12 @@ describe('LifeGame.vue', () => {
     const button = (text: string) =>
       wrapper.findAll('button').find((b) => b.text() === text)!
 
-    await button('start').trigger('click')
+    await button('Start').trigger('click')
     expect(wrapper.text()).toContain('Generation: 1')
 
     await button('Step').trigger('click')
     expect(wrapper.text()).toContain('Generation: 2')
-    expect(button('start')).toBeDefined()
+    expect(button('Start')).toBeDefined()
     expect(vi.getTimerCount()).toBe(0)
 
     await vi.advanceTimersByTimeAsync(5000)

@@ -20,6 +20,10 @@
           Click a cell to toggle it between alive and dead, or drag across the
           board to draw (starting on a live cell erases instead).
         </li>
+        <li>
+          With the keyboard, Tab to the board, move between cells with the arrow
+          keys, and press Enter or Space to toggle a cell.
+        </li>
         <li>Use Random to fill the board, or Clear to start over.</li>
         <li>
           Change Height and Width to resize the grid (up to 100 × 100); this

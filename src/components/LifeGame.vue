@@ -4,6 +4,8 @@
     <v-card-text>
       <div
         class="map"
+        role="group"
+        aria-label="Board"
         :class="{ 'no-border': isDense }"
         :style="{
           gridTemplateColumns: `repeat(${columns}, 1fr)`,
@@ -11,15 +13,22 @@
         }"
         @pointerdown="startPaint"
         @pointermove="continuePaint"
+        @keydown="moveFocus"
       >
         <template v-for="(dataList, i) in dataMap" :key="i">
           <template v-for="(data, j) in dataList" :key="j">
-            <div
+            <button
+              type="button"
               class="box"
               :data-i="i"
               :data-j="j"
               :class="data === 1 ? 'live' : 'death'"
-            ></div>
+              :aria-pressed="data === 1 ? 'true' : 'false'"
+              :aria-label="`Row ${i + 1}, column ${j + 1}`"
+              :tabindex="i === focusedCell[0] && j === focusedCell[1] ? 0 : -1"
+              @click="toggleByKeyboard($event, i, j)"
+              @focus="focusCell = [i, j]"
+            ></button>
           </template>
         </template>
       </div>
@@ -50,12 +59,13 @@
         </v-col>
       </v-row>
       <div class="mb-4">
-        <label for="interval-slider"
-          >Generation Interval: {{ (interval / 1000).toFixed(1) }}s</label
-        >
+        <div id="interval-slider-label">
+          Generation Interval: {{ intervalText }}
+        </div>
         <v-slider
-          id="interval-slider"
           v-model="interval"
+          aria-labelledby="interval-slider-label"
+          :aria-valuetext="intervalText"
           :min="100"
           :max="1000"
           :step="100"
@@ -119,6 +129,7 @@ const dataMap = ref([
 const width = ref(10)
 const height = ref(10)
 const interval = ref(1000) // in milliseconds
+const intervalText = computed(() => `${(interval.value / 1000).toFixed(1)}s`)
 
 const MIN_SIZE = 1
 const MAX_SIZE = 100
@@ -164,7 +175,11 @@ const cellAt = (event: PointerEvent): [number, number] | null => {
     typeof document.elementFromPoint === 'function'
       ? document.elementFromPoint(event.clientX, event.clientY)
       : null
-  const element = (hit ?? event.target) as HTMLElement | null
+  return cellOf(hit ?? event.target)
+}
+
+const cellOf = (target: EventTarget | null): [number, number] | null => {
+  const element = target as HTMLElement | null
   const i = Number(element?.dataset?.i)
   const j = Number(element?.dataset?.j)
   if (!Number.isInteger(i) || !Number.isInteger(j) || !dataMap.value[i]) {
@@ -203,6 +218,64 @@ const continuePaint = (event: PointerEvent) => {
   if (cell) {
     paintCell(cell[0], cell[1], paintValue)
   }
+}
+
+// Keyboard: the board is one tab stop (roving tabindex), so a 100x100 grid
+// doesn't add 10,000 stops. Arrow keys (and Home/End, Ctrl+Home/End) move
+// focus between cells; Enter/Space toggle the focused cell via the button's
+// own click. focusCell may point outside the board after a resize, so the
+// tabbable cell (focusedCell) is clamped into it
+const focusCell = ref<[number, number]>([0, 0])
+const focusedCell = computed<[number, number]>(() => [
+  Math.min(focusCell.value[0], dataMap.value.length - 1),
+  Math.min(focusCell.value[1], columns.value - 1),
+])
+
+const moveFocus = (event: KeyboardEvent) => {
+  const cell = cellOf(event.target)
+  if (!cell) {
+    return
+  }
+  let [i, j] = cell
+  const lastRow = dataMap.value.length - 1
+  const lastColumn = columns.value - 1
+  switch (event.key) {
+    case 'ArrowUp':
+      i = Math.max(i - 1, 0)
+      break
+    case 'ArrowDown':
+      i = Math.min(i + 1, lastRow)
+      break
+    case 'ArrowLeft':
+      j = Math.max(j - 1, 0)
+      break
+    case 'ArrowRight':
+      j = Math.min(j + 1, lastColumn)
+      break
+    case 'Home':
+      j = 0
+      if (event.ctrlKey) i = 0
+      break
+    case 'End':
+      j = lastColumn
+      if (event.ctrlKey) i = lastRow
+      break
+    default:
+      return
+  }
+  event.preventDefault()
+  focusCell.value = [i, j]
+  const map = event.currentTarget as HTMLElement
+  map.querySelector<HTMLElement>(`[data-i="${i}"][data-j="${j}"]`)?.focus()
+}
+
+// Pointer presses already toggled the cell on pointerdown, so only handle
+// clicks without a pointer (detail 0): Enter/Space, or a screen reader
+const toggleByKeyboard = (event: MouseEvent, i: number, j: number) => {
+  if (event.detail !== 0) {
+    return
+  }
+  paintCell(i, j, dataMap.value[i][j] === 1 ? 0 : 1)
 }
 
 // Listen on window so releasing the pointer outside the board also ends it
@@ -364,6 +437,12 @@ const clear = () => {
 }
 
 .box {
+  /* Reset the button's own look: a cell is just a colored square */
+  appearance: none;
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
   /* Theme colors, so the board follows the light/dark theme like the rest of the UI */
   border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   aspect-ratio: 1;
@@ -372,6 +451,13 @@ const clear = () => {
 
 .no-border .box {
   border: none;
+}
+
+.box:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-on-surface));
+  outline-offset: -2px;
+  position: relative;
+  z-index: 1;
 }
 
 /* Only on devices that really hover: on touch, :hover sticks after a tap */

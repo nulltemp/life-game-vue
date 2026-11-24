@@ -348,4 +348,63 @@ describe('LifeGame.vue', () => {
       )
     },
   )
+  it('exposes cells as toggle buttons with their position and state', () => {
+    const wrapper = mountLifeGame()
+    const cell = wrapper.findAll('.box')[12]
+    expect(cell.element.tagName).toBe('BUTTON')
+    expect(cell.attributes('aria-label')).toBe('Row 2, column 3')
+    expect(cell.attributes('aria-pressed')).toBe('true')
+    expect(wrapper.findAll('.box')[0].attributes('aria-pressed')).toBe('false')
+  })
+
+  it('makes the board a single tab stop and moves focus with arrow keys', async () => {
+    const wrapper = mount(LifeGame, {
+      global: { plugins: [createVuetify()] },
+      attachTo: document.body,
+    })
+    const tabbable = () =>
+      wrapper.findAll('.box').filter((b) => b.attributes('tabindex') === '0')
+    expect(tabbable()).toHaveLength(1)
+    expect(tabbable()[0].attributes('aria-label')).toBe('Row 1, column 1')
+
+    const cells = wrapper.findAll('.box')
+    await cells[0].trigger('keydown', { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(cells[1].element)
+    await cells[1].trigger('focus')
+    await cells[1].trigger('keydown', { key: 'ArrowDown' })
+    expect(document.activeElement).toBe(cells[11].element)
+    await cells[11].trigger('focus')
+    expect(tabbable()[0].attributes('aria-label')).toBe('Row 2, column 2')
+    // Moving stops at the edges
+    await cells[0].trigger('keydown', { key: 'ArrowUp' })
+    expect(document.activeElement).toBe(cells[0].element)
+    await cells[0].trigger('keydown', { key: 'End', ctrlKey: true })
+    expect(document.activeElement).toBe(cells[99].element)
+    wrapper.unmount()
+  })
+
+  it('toggles a cell from the keyboard but not twice on a pointer click', async () => {
+    const wrapper = mountLifeGame()
+    const cell = () => wrapper.findAll('.box')[0]
+    // Enter/Space activate a button with a click whose detail is 0
+    await cell().trigger('click')
+    expect(cell().classes()).toContain('live')
+    await cell().trigger('click')
+    expect(cell().classes()).toContain('death')
+
+    // A pointer click follows the pointerdown that already toggled the cell
+    await cell().trigger('pointerdown')
+    window.dispatchEvent(new Event('pointerup'))
+    await cell().trigger('click', { detail: 1 })
+    expect(cell().classes()).toContain('live')
+  })
+
+  it('labels the interval slider with its visible label', () => {
+    const wrapper = mountLifeGame()
+    const label = wrapper.find('#interval-slider-label')
+    expect(label.text()).toBe('Generation Interval: 1.0s')
+    const thumb = wrapper.find('[role="slider"]')
+    expect(thumb.attributes('aria-labelledby')).toBe('interval-slider-label')
+    expect(thumb.attributes('aria-valuetext')).toBe('1.0s')
+  })
 })

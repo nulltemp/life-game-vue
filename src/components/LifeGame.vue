@@ -364,7 +364,8 @@ const clear = () => {
 }
 
 .box {
-  border: 1px solid #ccc;
+  /* Theme colors, so the board follows the light/dark theme like the rest of the UI */
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
   aspect-ratio: 1;
   cursor: pointer;
 }
@@ -381,10 +382,10 @@ const clear = () => {
 }
 
 .live {
-  background: #1976d2;
+  background: rgb(var(--v-theme-primary));
 }
 
 .death {
-  background: #fff;
+  background: rgb(var(--v-theme-surface));
 }
 </style>

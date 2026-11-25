@@ -50,6 +50,7 @@ This is a small single-page Vue 3 + Vuetify + TypeScript app implementing Conway
 ## Deployment and CI
 
 - The app is hosted on Cloudflare (https://life-game-vue.nulltemp.com/); the production build is `npm run build` → `dist/`.
+- Response headers are set in `public/_headers` (copied as-is into `dist/`): `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY` on every path, and a one-year immutable `Cache-Control` for the hashed `/assets/*`. There is no CSP yet (it would need to allow the GA hosts).
 - CI is GitHub Actions (`.github/workflows/ci.yml`), run on pushes to `master` and on pull requests: `npm ci` (with `CYPRESS_INSTALL_BINARY=0`), `npx eslint .` (no `--fix`), `npm run type-check`, `npm run test:unit`, `npm run build-only`, on Node 22. E2E tests are not run in CI — run `npm run test:e2e` locally when changing UI.
 
 ## Issue tracking

@@ -53,7 +53,8 @@ This is a small single-page Vue 3 + Vuetify + TypeScript app implementing Conway
 
 - The app is hosted on Cloudflare (https://life-game-vue.nulltemp.com/); the production build is `npm run build` → `dist/`.
 - Response headers are set in `public/_headers` (copied as-is into `dist/`): `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY` on every path, and a one-year immutable `Cache-Control` for the hashed `/assets/*`. There is no CSP yet (it would need to allow the GA hosts).
-- CI is GitHub Actions (`.github/workflows/ci.yml`), run on pushes to `master` and on pull requests: `npm ci` (with `CYPRESS_INSTALL_BINARY=0`), `npx eslint .` (no `--fix`), `npm run type-check`, `npm run test:unit`, `npm run build-only`, on Node 22. E2E tests are not run in CI — run `npm run test:e2e` locally when changing UI.
+- CI is GitHub Actions (`.github/workflows/ci.yml`), run on pushes to `master` and on pull requests: `npm ci` (with `CYPRESS_INSTALL_BINARY=0`), `npx eslint .` (no `--fix`), `npm run type-check`, `npm run test:unit`, `npm run build-only`, on Node 22, in the `check` job. A separate `e2e` job runs the Cypress specs headless via `cypress-io/github-action` (which installs dependencies with the Cypress binary, runs `npm run build-only`, serves `dist/` with `vite preview` on `127.0.0.1:4173` and runs `cypress run`), uploading `cypress/screenshots` as an artifact on failure. Still run `npm run test:e2e` locally when changing UI.
+- `package.json` `overrides` force `js-beautify` (via `@vue/test-utils`) onto `glob` 14 and `editorconfig` 4, whose `minimatch` 11 fixes the `npm audit` advisories in `glob` 13 / `minimatch` 10 (`js-beautify` 2.0.3 still asks for `glob ^13` / `editorconfig ^3`). Drop them once `js-beautify` depends on fixed versions itself.
 
 ## Issue tracking
 

@@ -109,6 +109,111 @@ describe('Life Game E2E Tests', () => {
     cy.get('@thumb').should('have.attr', 'aria-valuenow', '100')
   })
 
+  // Pointer events are triggered on the cells themselves, so Cypress gives them
+  // the clientX/clientY of each cell's center and the app finds the cell with
+  // document.elementFromPoint (the events bubble up to .map, and pointerup on to
+  // window)
+  const cell = (i: number, j: number) =>
+    cy.get(`.box[data-i="${i}"][data-j="${j}"]`)
+  const pointer = {
+    eventConstructor: 'PointerEvent',
+    button: 0,
+    pointerId: 1,
+    isPrimary: true,
+  }
+
+  it('should paint the cells a drag passes over', () => {
+    cy.contains('button', 'Clear').click()
+
+    // Skip (0, 1) and (0, 2) in pointermove: the cells in between are filled in too
+    cell(0, 0).trigger('pointerdown', pointer)
+    cell(0, 3).trigger('pointermove', pointer)
+    cell(1, 3).trigger('pointermove', pointer)
+    cell(1, 3).trigger('pointerup', pointer)
+    cy.get('.box.live').should('have.length', 5)
+    for (const [i, j] of [
+      [0, 0],
+      [0, 1],
+      [0, 2],
+      [0, 3],
+      [1, 3],
+    ]) {
+      cell(i, j).should('have.class', 'live')
+    }
+
+    // Moving after pointerup paints nothing
+    cell(5, 5).trigger('pointermove', pointer)
+    cell(5, 5).should('have.class', 'death')
+
+    // Starting on a live cell erases the cells passed over
+    cell(0, 0).trigger('pointerdown', pointer)
+    cell(0, 3).trigger('pointermove', pointer)
+    cell(0, 3).trigger('pointerup', pointer)
+    cy.get('.box.live').should('have.length', 1)
+    cell(1, 3).should('have.class', 'live')
+  })
+
+  it('should advance one generation with Step', () => {
+    cy.contains('button', 'Step').click()
+    cy.contains('Generation: 1').should('be.visible')
+    // The initial glider moves: (1, 2) dies and (4, 2) is born
+    cy.get('.box.live').should('have.length', 5)
+    cell(1, 2).should('have.class', 'death')
+    cell(4, 2).should('have.class', 'live')
+    cy.contains('button', 'Start').should('be.visible')
+  })
+
+  it('should stop the simulation with Step while running', () => {
+    cy.contains('button', 'Start').click()
+    cy.contains('Generation: 1').should('be.visible')
+    cy.contains('button', 'Step').click()
+    cy.contains('button', 'Start').should('be.visible')
+    cy.contains('Generation: 2').should('be.visible')
+    // No more generations once stopped (the default interval is 1.0s)
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(1500)
+    cy.contains('Generation: 2').should('be.visible')
+  })
+
+  it('should say when the board is no longer changing', () => {
+    cy.contains('button', 'Clear').click()
+    cy.get('[role="status"]').should(
+      'not.contain',
+      'The board is no longer changing.',
+    )
+
+    // Start on a board that wouldn't change stops at once
+    cy.contains('button', 'Start').click()
+    cy.get('[role="status"]').should(
+      'contain',
+      'The board is no longer changing.',
+    )
+    cy.contains('button', 'Start').should('be.visible')
+    cy.contains('Generation: 0').should('be.visible')
+
+    // Editing the board hides the message
+    cell(0, 0).trigger('pointerdown', pointer)
+    cell(0, 0).trigger('pointerup', pointer)
+    cy.get('[role="status"]').should(
+      'not.contain',
+      'The board is no longer changing.',
+    )
+
+    // Step on a single cell: it dies (the board changes), then nothing changes
+    cy.contains('button', 'Step').click()
+    cy.contains('Generation: 1').should('be.visible')
+    cy.get('[role="status"]').should(
+      'not.contain',
+      'The board is no longer changing.',
+    )
+    cy.contains('button', 'Step').click()
+    cy.get('[role="status"]').should(
+      'contain',
+      'The board is no longer changing.',
+    )
+    cy.contains('Generation: 1').should('be.visible')
+  })
+
   it('should have working GitHub link', () => {
     cy.get('a[href*="github.com"]').should('have.attr', 'target', '_blank')
   })

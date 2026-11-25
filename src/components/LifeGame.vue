@@ -112,6 +112,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { isSameGrid, nextGeneration } from '@/utils/life'
+import { cellsOnLine, type Cell } from '@/utils/line'
 
 const dataMap = ref([
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -167,6 +168,9 @@ const clampSize = (value: number | string, current: number): number => {
 // A single pair of handlers on .map finds the cell under the pointer, so cells
 // need no listeners of their own
 let paintValue: number | null = null
+// The cell painted last. Browsers coalesce pointermove to about one per frame,
+// so a fast drag can skip cells; the line from here to the new cell fills them
+let lastPaintedCell: Cell | null = null
 
 // The cell under the pointer. Touch pointers stay captured by the element they
 // went down on, so look it up by position rather than trusting event.target
@@ -208,6 +212,7 @@ const startPaint = (event: PointerEvent) => {
   const [i, j] = cell
   paintValue = dataMap.value[i][j] === 1 ? 0 : 1
   paintCell(i, j, paintValue)
+  lastPaintedCell = cell
 }
 
 const continuePaint = (event: PointerEvent) => {
@@ -215,9 +220,17 @@ const continuePaint = (event: PointerEvent) => {
     return
   }
   const cell = cellAt(event)
-  if (cell) {
-    paintCell(cell[0], cell[1], paintValue)
+  if (!cell) {
+    return
   }
+  const from = lastPaintedCell ?? cell
+  for (const [i, j] of cellsOnLine(from, cell)) {
+    // The board may have been resized since the last cell was painted
+    if (j < (dataMap.value[i]?.length ?? 0)) {
+      paintCell(i, j, paintValue)
+    }
+  }
+  lastPaintedCell = cell
 }
 
 // Keyboard: the board is one tab stop (roving tabindex), so a 100x100 grid
@@ -281,6 +294,7 @@ const toggleByKeyboard = (event: MouseEvent, i: number, j: number) => {
 // Listen on window so releasing the pointer outside the board also ends it
 const endPaint = () => {
   paintValue = null
+  lastPaintedCell = null
 }
 onMounted(() => {
   window.addEventListener('pointerup', endPaint)

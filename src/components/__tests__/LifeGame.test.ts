@@ -82,6 +82,29 @@ describe('LifeGame.vue', () => {
     expect(liveIndexes(wrapper)).toEqual([10, 11, 12, 13, 23])
   })
 
+  it('fills the cells skipped between two pointer positions', async () => {
+    const wrapper = mountLifeGame()
+    const box = (index: number) => wrapper.findAll('.box')[index]
+
+    // One pointermove from row 5, column 0 straight to row 5, column 4,
+    // then diagonally to row 8, column 7
+    await box(50).trigger('pointerdown')
+    await box(54).trigger('pointermove')
+    await box(87).trigger('pointermove')
+    window.dispatchEvent(new Event('pointerup'))
+    expect(liveIndexes(wrapper)).toEqual([
+      12, 23, 31, 32, 33, 50, 51, 52, 53, 54, 65, 76, 87,
+    ])
+
+    // A new drag doesn't connect to where the last one ended
+    await box(0).trigger('pointerdown')
+    await box(2).trigger('pointermove')
+    window.dispatchEvent(new Event('pointerup'))
+    expect(liveIndexes(wrapper)).toEqual([
+      0, 1, 2, 12, 23, 31, 32, 33, 50, 51, 52, 53, 54, 65, 76, 87,
+    ])
+  })
+
   it('ignores presses with a non-primary button', async () => {
     const wrapper = mountLifeGame()
     await wrapper.findAll('.box')[0].trigger('pointerdown', { button: 2 })

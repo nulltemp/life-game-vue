@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
         env:
-          # E2E tests are not run in CI, so skip downloading the Cypress binary
+          # E2E tests run in the e2e job, so skip downloading the Cypress binary here
           CYPRESS_INSTALL_BINARY: 0
 
       - name: Lint
@@ -40,3 +40,32 @@ jobs:
 
       - name: Build
         run: npm run build-only
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      # Installs dependencies (with the Cypress binary, cached by the action),
+      # builds, then runs `npm run test:e2e`, which serves dist/ on the baseUrl
+      # in cypress.config.ts via start-server-and-test and runs the specs.
+      # The action's own start/wait-on is not used: its ping gives up on the
+      # first "Socket closed before the connection was established" error
+      # instead of retrying until vite preview is listening.
+      - name: Cypress E2E tests
+        uses: cypress-io/github-action@v6
+        with:
+          build: npm run build-only
+          command: npm run test:e2e
+
+      - name: Upload screenshots
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+          if-no-files-found: ignore

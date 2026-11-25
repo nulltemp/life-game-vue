@@ -1,0 +1,73 @@
+/*
+ * The few Vuetify utility and color classes the templates use, copied from
+ * vuetify/lib/styles/utilities.css and colors.css into the same cascade layers.
+ * main.ts imports vuetify/styles/core instead of vuetify/styles, which would
+ * also bring in every utility (~240kB) and material color (~40kB) class.
+ * Add a class here when a template starts using one.
+ */
+/* Registered in utilities.css, but the components' CSS relies on it: without it
+   the elevation overlay inherits into the children of cards and buttons */
+@property --v-elevation-overlay {
+  syntax: '<color>';
+  inherits: false;
+  initial-value: transparent;
+}
+@layer vuetify-utilities.helpers {
+  .mt-2 {
+    margin-top: 8px;
+  }
+  .mt-4 {
+    margin-top: 16px;
+  }
+  .mb-2 {
+    margin-bottom: 8px;
+  }
+  .mb-4 {
+    margin-bottom: 16px;
+  }
+  .ml-2 {
+    margin-left: 8px;
+  }
+  .pa-4 {
+    padding: 16px;
+  }
+  .pl-6 {
+    padding-left: 24px;
+  }
+  .text-center {
+    text-align: center;
+  }
+  .text-medium-emphasis {
+    color: color-mix(
+      in srgb,
+      rgb(var(--v-theme-on-background))
+        calc(var(--v-medium-emphasis-opacity) * 100%),
+      transparent
+    );
+  }
+  /* Vuetify's own: the slider thumb (elevation prop) */
+  .elevation-1 {
+    box-shadow:
+      0px 1px 2px 0px
+        rgba(var(--v-shadow-color), var(--v-shadow-key-opacity, 0.3)),
+      0px 1px 3px 1px
+        rgba(var(--v-shadow-color), var(--v-shadow-ambient-opacity, 0.15));
+    --v-elevation-overlay: color-mix(
+      in srgb,
+      var(--v-elevation-overlay-color) 2%,
+      transparent
+    );
+  }
+  .font-weight-bold {
+    font-weight: 700;
+  }
+}
+/* The Start/Stop button's color="red" (not a theme color, so Vuetify uses .bg-red) */
+@layer vuetify-utilities.theme-background {
+  .bg-red {
+    background-color: #f44336;
+  }
+  .bg-red {
+    color: #ffffff;
+  }
+}

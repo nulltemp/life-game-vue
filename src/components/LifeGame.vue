@@ -410,9 +410,18 @@ const changeStartStatus = () => {
     clearTimeout(timerId)
     timerId = null
   }
-  if (isStarted.value) {
-    update()
+  if (!isStarted.value) {
+    return
   }
+  // The first generation comes after one interval too, like every later one.
+  // A board that wouldn't change stops at once, so Start still shows why
+  // nothing happens instead of waiting out the interval first
+  if (isSameGrid(nextGeneration(dataMap.value), dataMap.value)) {
+    isUnchanging.value = true
+    stopStatus()
+    return
+  }
+  timerId = setTimeout(update, interval.value)
 }
 
 const stopStatus = () => {

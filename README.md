@@ -11,6 +11,7 @@ A modern implementation of Conway's Game of Life using Vue 3, Vuetify, and TypeS
 - **Dynamic Resizing**: Adjust grid height and width (up to 100 × 100)
 - **Simulation Controls**: Start/Stop the evolution with a customizable generation interval, or Step one generation at a time
 - **Random / Clear**: Fill the board randomly or start over with an empty one
+- **Share Link**: Copy a link that carries the current board in its URL hash, and open it to get the board back
 - **Auto-Stop**: The simulation stops by itself once the board stops changing, with a message saying so
 - **Light/Dark Theme**: The board follows the system's light/dark theme
 - **Responsive Design**: Built with Vuetify for a modern Material Design UI
@@ -24,6 +25,7 @@ A modern implementation of Conway's Game of Life using Vue 3, Vuetify, and TypeS
 - Use Random to fill the board, or Clear to start over.
 - Change Height and Width to resize the grid (up to 100 × 100); this resets the generation counter.
 - Set the generation interval with the slider (0.1s to 1.0s).
+- Press Copy link to copy a link to the current board (it is also put into the address bar, so reloading keeps it); opening the link brings the board back.
 - Press Start to run the simulation and Stop to pause it.
 - Press Step to advance one generation at a time (it pauses a running simulation).
 - The simulation stops by itself once the board stops changing, and a message says so (Start and Step show it too on such a board).

@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createVuetify } from 'vuetify'
 import LifeGame from '@/components/LifeGame.vue'
+import { decodeBoard } from '@/utils/share'
 
 // Mock CSS
 vi.mock('*.css', () => ({}))
@@ -429,5 +430,106 @@ describe('LifeGame.vue', () => {
     const thumb = wrapper.find('[role="slider"]')
     expect(thumb.attributes('aria-labelledby')).toBe('interval-slider-label')
     expect(thumb.attributes('aria-valuetext')).toBe('1.0s')
+  })
+
+  describe('sharing', () => {
+    // jsdom has no navigator.clipboard
+    const stubClipboard = (writeText: (text: string) => Promise<void>) => {
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText },
+        configurable: true,
+      })
+    }
+
+    afterEach(() => {
+      window.history.replaceState(null, '', '/')
+    })
+
+    it('loads the board from the URL hash', async () => {
+      window.history.replaceState(null, '', '/#w=4&h=3&c=QuA')
+      const wrapper = mountLifeGame()
+      await wrapper.vm.$nextTick()
+      expect(wrapper.findAll('.box')).toHaveLength(12)
+      expect(liveIndexes(wrapper)).toEqual([1, 6, 8, 9, 10])
+      const inputs = wrapper.findAll('input[type="number"]')
+      expect((inputs[0].element as HTMLInputElement).value).toBe('3')
+      expect((inputs[1].element as HTMLInputElement).value).toBe('4')
+    })
+
+    it('loads a shared board opened in the same tab (hashchange)', async () => {
+      const wrapper = mountLifeGame()
+      try {
+        await wrapper
+          .findAll('button')
+          .find((b) => b.text() === 'Start')!
+          .trigger('click')
+        // Only the hash changes, so the page isn't reloaded
+        window.history.replaceState(null, '', '/#w=4&h=3&c=QuA')
+        window.dispatchEvent(new HashChangeEvent('hashchange'))
+        await wrapper.vm.$nextTick()
+        expect(wrapper.findAll('.box')).toHaveLength(12)
+        expect(liveIndexes(wrapper)).toEqual([1, 6, 8, 9, 10])
+        expect(wrapper.text()).toContain('Generation: 0')
+        expect(
+          wrapper.findAll('button').find((b) => b.text() === 'Start'),
+        ).toBeDefined()
+        expect(vi.getTimerCount()).toBe(0)
+      } finally {
+        wrapper.unmount()
+      }
+    })
+
+    it('ignores an invalid hash and keeps the glider', async () => {
+      window.history.replaceState(null, '', '/#w=4&h=3&c=Q')
+      const wrapper = mountLifeGame()
+      await wrapper.vm.$nextTick()
+      expect(wrapper.findAll('.box')).toHaveLength(100)
+      expect(liveIndexes(wrapper)).toEqual([12, 23, 31, 32, 33])
+    })
+
+    it('copies a link to the current board and says so', async () => {
+      const writeText = vi.fn().mockResolvedValue(undefined)
+      stubClipboard(writeText)
+      try {
+        const wrapper = mountLifeGame()
+        const copy = wrapper
+          .findAll('button')
+          .find((b) => b.text() === 'Copy link')!
+        await copy.trigger('click')
+        await flushPromises()
+        const url = writeText.mock.calls[0][0] as string
+        expect(window.location.hash).toBe(new URL(url).hash)
+        const board = decodeBoard(new URL(url).hash)!
+        expect(board).toHaveLength(10)
+        expect(
+          board.flat().flatMap((cell, index) => (cell === 1 ? [index] : [])),
+        ).toEqual(liveIndexes(wrapper))
+        expect(wrapper.find('.copy-message').text()).toBe(
+          'Link copied to the clipboard.',
+        )
+
+        // Editing the board hides the message
+        await wrapper.findAll('.box')[0].trigger('pointerdown')
+        window.dispatchEvent(new Event('pointerup'))
+        expect(wrapper.find('.copy-message').exists()).toBe(false)
+      } finally {
+        delete (navigator as { clipboard?: unknown }).clipboard
+      }
+    })
+
+    it('says so when the clipboard is unavailable', async () => {
+      stubClipboard(vi.fn().mockRejectedValue(new Error('denied')))
+      try {
+        const wrapper = mountLifeGame()
+        const copy = wrapper
+          .findAll('button')
+          .find((b) => b.text() === 'Copy link')!
+        await copy.trigger('click')
+        await flushPromises()
+        expect(wrapper.find('.copy-message').text()).toContain("Couldn't copy")
+      } finally {
+        delete (navigator as { clipboard?: unknown }).clipboard
+      }
+    })
   })
 })

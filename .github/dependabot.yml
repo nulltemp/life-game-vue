@@ -1,0 +1,19 @@
+# 依存パッケージと GitHub Actions の更新を月1回確認する（#45）。PR は CI（check・e2e）が通ってからマージする
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      # マイナー・パッチ更新は1つの PR にまとめる。メジャー更新（Vue・Vuetify・Vite・Vitest・Cypress など）は個別の PR になる
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns: ["*"]

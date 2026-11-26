@@ -214,6 +214,26 @@ describe('Life Game E2E Tests', () => {
     cy.contains('Generation: 1').should('be.visible')
   })
 
+  it('should restore a shared board from the link', () => {
+    // A 4x3 glider (see src/utils/share.ts for the format)
+    cy.visit('/#w=4&h=3&c=QuA')
+    cy.get('.box').should('have.length', 12)
+    cy.get('.box.live').should('have.length', 5)
+    cy.get('.box').eq(1).should('have.class', 'live')
+    cy.get('.box').eq(0).should('have.class', 'death')
+  })
+
+  it('should put the board into the URL with Copy link', () => {
+    cy.get('.box').first().click()
+    cy.contains('button', 'Copy link').click()
+    // Headless browsers may refuse the clipboard, but the address bar is updated either way
+    cy.get('.copy-message').should('be.visible')
+    cy.location('hash').should('match', /^#w=10&h=10&c=/)
+    cy.reload()
+    cy.get('.box').first().should('have.class', 'live')
+    cy.get('.box.live').should('have.length', 6)
+  })
+
   it('should have working GitHub link', () => {
     cy.get('a[href*="github.com"]').should('have.attr', 'target', '_blank')
   })

@@ -456,6 +456,29 @@ describe('LifeGame.vue', () => {
       expect((inputs[1].element as HTMLInputElement).value).toBe('4')
     })
 
+    it('loads a shared board opened in the same tab (hashchange)', async () => {
+      const wrapper = mountLifeGame()
+      try {
+        await wrapper
+          .findAll('button')
+          .find((b) => b.text() === 'Start')!
+          .trigger('click')
+        // Only the hash changes, so the page isn't reloaded
+        window.history.replaceState(null, '', '/#w=4&h=3&c=QuA')
+        window.dispatchEvent(new HashChangeEvent('hashchange'))
+        await wrapper.vm.$nextTick()
+        expect(wrapper.findAll('.box')).toHaveLength(12)
+        expect(liveIndexes(wrapper)).toEqual([1, 6, 8, 9, 10])
+        expect(wrapper.text()).toContain('Generation: 0')
+        expect(
+          wrapper.findAll('button').find((b) => b.text() === 'Start'),
+        ).toBeDefined()
+        expect(vi.getTimerCount()).toBe(0)
+      } finally {
+        wrapper.unmount()
+      }
+    })
+
     it('ignores an invalid hash and keeps the glider', async () => {
       window.history.replaceState(null, '', '/#w=4&h=3&c=Q')
       const wrapper = mountLifeGame()

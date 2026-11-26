@@ -310,10 +310,12 @@ onMounted(() => {
   loadSharedBoard()
   window.addEventListener('pointerup', endPaint)
   window.addEventListener('pointercancel', endPaint)
+  window.addEventListener('hashchange', loadSharedBoard)
 })
 onUnmounted(() => {
   window.removeEventListener('pointerup', endPaint)
   window.removeEventListener('pointercancel', endPaint)
+  window.removeEventListener('hashchange', loadSharedBoard)
 })
 
 const changeDataMapSize = () => {
@@ -456,12 +458,17 @@ const clear = () => {
 
 // Sharing: a link to the current board carries it in the URL hash (see
 // src/utils/share.ts). Opening such a link loads that board instead of the
-// glider; an invalid hash is ignored
+// glider; an invalid hash is ignored. Opening one in a tab already on this
+// page only changes the hash (no reload), so this also runs on hashchange
+// (copyLink's replaceState doesn't fire it)
 const loadSharedBoard = () => {
   const board = decodeBoard(window.location.hash)
   if (!board) {
     return
   }
+  stopStatus()
+  isUnchanging.value = false
+  copyMessage.value = ''
   dataMap.value = board
   height.value = board.length
   width.value = board[0].length

@@ -29,6 +29,10 @@
           Change Height and Width to resize the grid (up to 100 × 100); this
           resets the generation counter.
         </li>
+        <li>
+          Press Copy link to copy a link to the current board; opening it brings
+          the board back, so you can share a pattern or keep it.
+        </li>
         <li>Press Start to run the simulation and Stop to pause it.</li>
         <li>Press Step to advance one generation at a time.</li>
         <li>

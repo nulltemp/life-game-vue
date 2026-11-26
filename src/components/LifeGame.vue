@@ -82,19 +82,24 @@
         {{ startButtonMessage }}
       </v-btn>
       <v-row density="compact">
-        <v-col cols="4">
+        <v-col cols="6" sm="3">
           <v-btn @click="stepOnce" size="large" variant="outlined" block>
             Step
           </v-btn>
         </v-col>
-        <v-col cols="4">
+        <v-col cols="6" sm="3">
           <v-btn @click="randomize" size="large" variant="outlined" block>
             Random
           </v-btn>
         </v-col>
-        <v-col cols="4">
+        <v-col cols="6" sm="3">
           <v-btn @click="clear" size="large" variant="outlined" block>
             Clear
+          </v-btn>
+        </v-col>
+        <v-col cols="6" sm="3">
+          <v-btn @click="copyLink" size="large" variant="outlined" block>
+            Copy link
           </v-btn>
         </v-col>
       </v-row>
@@ -105,6 +110,9 @@
           UNCHANGING_MESSAGE
         }}</span>
       </div>
+      <div class="text-center text-medium-emphasis" role="status">
+        <span v-if="copyMessage" class="copy-message">{{ copyMessage }}</span>
+      </div>
     </v-card-text>
   </v-card>
 </template>
@@ -113,6 +121,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { isSameGrid, nextGeneration } from '@/utils/life'
 import { cellsOnLine, type Cell } from '@/utils/line'
+import { decodeBoard, encodeBoard } from '@/utils/share'
 
 const dataMap = ref([
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -197,6 +206,7 @@ const paintCell = (i: number, j: number, value: number) => {
     return
   }
   isUnchanging.value = false
+  copyMessage.value = ''
   dataMap.value[i][j] = value
 }
 
@@ -297,6 +307,7 @@ const endPaint = () => {
   lastPaintedCell = null
 }
 onMounted(() => {
+  loadSharedBoard()
   window.addEventListener('pointerup', endPaint)
   window.addEventListener('pointercancel', endPaint)
 })
@@ -307,6 +318,7 @@ onUnmounted(() => {
 
 const changeDataMapSize = () => {
   isUnchanging.value = false
+  copyMessage.value = ''
   width.value = clampSize(width.value, dataMap.value[0].length)
   height.value = clampSize(height.value, dataMap.value.length)
 
@@ -366,6 +378,7 @@ const step = (): boolean => {
     return false
   }
   isUnchanging.value = false
+  copyMessage.value = ''
   dataMap.value = next
   generation.value++
   return true
@@ -420,6 +433,7 @@ onUnmounted(() => stopStatus())
 const randomize = () => {
   stopStatus()
   isUnchanging.value = false
+  copyMessage.value = ''
   for (let i = 0; i < dataMap.value.length; i++) {
     for (let j = 0; j < dataMap.value[i].length; j++) {
       dataMap.value[i][j] = Math.random() < 0.5 ? 1 : 0
@@ -431,12 +445,44 @@ const randomize = () => {
 const clear = () => {
   stopStatus()
   isUnchanging.value = false
+  copyMessage.value = ''
   for (let i = 0; i < dataMap.value.length; i++) {
     for (let j = 0; j < dataMap.value[i].length; j++) {
       dataMap.value[i][j] = 0
     }
   }
   generation.value = 0
+}
+
+// Sharing: a link to the current board carries it in the URL hash (see
+// src/utils/share.ts). Opening such a link loads that board instead of the
+// glider; an invalid hash is ignored
+const loadSharedBoard = () => {
+  const board = decodeBoard(window.location.hash)
+  if (!board) {
+    return
+  }
+  dataMap.value = board
+  height.value = board.length
+  width.value = board[0].length
+  generation.value = 0
+}
+
+// Announced in a role="status" line; cleared whenever the board changes
+const copyMessage = ref('')
+
+const copyLink = async () => {
+  const hash = encodeBoard(dataMap.value)
+  const { origin, pathname, search } = window.location
+  const url = `${origin}${pathname}${search}#${hash}`
+  // Keep the address bar in sync too, so a reload keeps the board
+  window.history.replaceState(window.history.state, '', `#${hash}`)
+  try {
+    await navigator.clipboard.writeText(url)
+    copyMessage.value = 'Link copied to the clipboard.'
+  } catch {
+    copyMessage.value = "Couldn't copy the link; it is in the address bar."
+  }
 }
 </script>
 

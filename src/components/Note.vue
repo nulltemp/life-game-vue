@@ -4,6 +4,7 @@
       <v-btn
         href="https://github.com/nulltemp/life-game-vue"
         target="_blank"
+        rel="noopener"
         variant="outlined"
       >
         View on GitHub

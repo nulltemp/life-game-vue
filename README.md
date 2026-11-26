@@ -7,20 +7,26 @@ A modern implementation of Conway's Game of Life using Vue 3, Vuetify, and TypeS
 ## Features
 
 - **Interactive Grid**: Click cells to toggle their state (alive/dead), or drag to draw/erase several at once
-- **Dynamic Resizing**: Adjust grid height and width in real-time
-- **Simulation Controls**: Start/stop the evolution with customizable generation intervals
+- **Keyboard Support**: Tab to the board, move between cells with the arrow keys (Home/End, Ctrl+Home/End for the corners), and toggle a cell with Enter or Space
+- **Dynamic Resizing**: Adjust grid height and width (up to 100 × 100)
+- **Simulation Controls**: Start/Stop the evolution with a customizable generation interval, or Step one generation at a time
+- **Random / Clear**: Fill the board randomly or start over with an empty one
+- **Auto-Stop**: The simulation stops by itself once the board stops changing, with a message saying so
+- **Light/Dark Theme**: The board follows the system's light/dark theme
 - **Responsive Design**: Built with Vuetify for a modern Material Design UI
 - **TypeScript Support**: Full type safety with Vue 3 Composition API
 - **Testing Suite**: Unit tests with Vitest and E2E tests with Cypress
 
 ## How to Play
 
-1. Click on grid cells to set initial living cells (blue = alive, white = dead), or drag across them to draw (dragging from a live cell erases)
-2. Adjust grid dimensions using the Height and Width inputs
-3. Set the generation interval speed (0.1s to 1.0s)
-4. Click "Start" to begin the simulation
-5. Click "Stop" to pause the evolution
-6. Click "Step" to advance one generation at a time (pauses a running simulation)
+- Click a cell to toggle it between alive (blue) and dead, or drag across the board to draw (starting on a live cell erases instead). The board's colors follow the light/dark theme.
+- With the keyboard, Tab to the board, move between cells with the arrow keys, and press Enter or Space to toggle a cell.
+- Use Random to fill the board, or Clear to start over.
+- Change Height and Width to resize the grid (up to 100 × 100); this resets the generation counter.
+- Set the generation interval with the slider (0.1s to 1.0s).
+- Press Start to run the simulation and Stop to pause it.
+- Press Step to advance one generation at a time (it pauses a running simulation).
+- The simulation stops by itself once the board stops changing, and a message says so (Start and Step show it too on such a board).
 
 ## Recommended IDE Setup
 

@@ -119,6 +119,11 @@ describe('LifeGame.vue', () => {
 
     await startButton().trigger('click')
     expect(startButton().text()).toBe('Stop')
+    // The first generation waits one interval, like the later ones
+    expect(wrapper.text()).toContain('Generation: 0')
+    await vi.advanceTimersByTimeAsync(999)
+    expect(wrapper.text()).toContain('Generation: 0')
+    await vi.advanceTimersByTimeAsync(1)
     expect(wrapper.text()).toContain('Generation: 1')
     // Glider after 1 generation
     expect(liveIndexes(wrapper)).toEqual([21, 23, 32, 33, 42])
@@ -138,6 +143,7 @@ describe('LifeGame.vue', () => {
       .findAll('button')
       .find((b) => b.text() === 'Start')!
     await startButton.trigger('click')
+    await vi.advanceTimersByTimeAsync(1000)
     expect(wrapper.text()).toContain('Generation: 1')
 
     // Shorten the interval from 1.0s to 0.1s right after a generation
@@ -327,6 +333,7 @@ describe('LifeGame.vue', () => {
       wrapper.findAll('button').find((b) => b.text() === text)!
 
     await button('Start').trigger('click')
+    await vi.advanceTimersByTimeAsync(1000)
     expect(wrapper.text()).toContain('Generation: 1')
 
     await button('Step').trigger('click')

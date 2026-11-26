@@ -68,7 +68,10 @@ describe('Life Game E2E Tests', () => {
   it('should increase the generation while running', () => {
     cy.contains('Generation: 0').should('be.visible')
     cy.contains('button', 'Start').click()
-    // Start advances one generation at once, then one per interval (1.0s by default)
+    // The first generation, like every later one, comes after one interval
+    // (1.0s by default), not at once
+    cy.contains('Generation: 0').should('be.visible')
+    cy.contains('Generation: 1').should('be.visible')
     cy.contains('Generation: 2').should('be.visible')
     cy.contains('button', 'Stop').click()
   })

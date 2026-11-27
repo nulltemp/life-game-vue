@@ -217,6 +217,87 @@ describe('Life Game E2E Tests', () => {
     cy.contains('Generation: 1').should('be.visible')
   })
 
+  // The board is one tab stop (roving tabindex): exactly one cell is tabbable
+  const onlyTabbable = (label: string) => {
+    cy.get('.box[tabindex="0"]')
+      .should('have.length', 1)
+      .and('have.attr', 'aria-label', label)
+    cy.get('.box[tabindex="-1"]').should('have.length', 99)
+  }
+
+  it('should move focus over the board with the arrow keys', () => {
+    onlyTabbable('Row 1, column 1')
+    cell(0, 0).focus()
+    cy.focused().should('have.attr', 'aria-label', 'Row 1, column 1')
+
+    cy.focused().type('{rightArrow}')
+    cy.focused().should('have.attr', 'aria-label', 'Row 1, column 2')
+    onlyTabbable('Row 1, column 2')
+
+    cy.focused().type('{downArrow}')
+    cy.focused().should('have.attr', 'aria-label', 'Row 2, column 2')
+    onlyTabbable('Row 2, column 2')
+
+    // Moving doesn't change any cell
+    cy.get('.box.live').should('have.length', 5)
+
+    cy.focused().type('{ctrl}{end}')
+    cy.focused().should('have.attr', 'aria-label', 'Row 10, column 10')
+    onlyTabbable('Row 10, column 10')
+  })
+
+  // cy.type() only dispatches synthetic key events, which (unlike a real key
+  // press) don't run the button's default action, the click (detail 0) that
+  // toggles the cell. So press the keys through the Chrome DevTools Protocol,
+  // which the browser treats as real input (Chromium-family browsers only,
+  // like Cypress's default Electron)
+  const pressKey = (key: 'Enter' | ' ') => {
+    const keyEvent = {
+      key,
+      code: key === ' ' ? 'Space' : 'Enter',
+      windowsVirtualKeyCode: key === ' ' ? 32 : 13,
+    }
+    cy.wrap(
+      Cypress.automation('remote:debugger:protocol', {
+        command: 'Input.dispatchKeyEvent',
+        params: {
+          type: 'keyDown',
+          text: key === ' ' ? ' ' : '\r',
+          ...keyEvent,
+        },
+      }),
+    )
+    cy.wrap(
+      Cypress.automation('remote:debugger:protocol', {
+        command: 'Input.dispatchKeyEvent',
+        params: { type: 'keyUp', ...keyEvent },
+      }),
+    )
+  }
+
+  for (const [name, key] of [
+    ['Enter', 'Enter'],
+    ['Space', ' '],
+  ] as const) {
+    it(`should toggle the focused cell once with ${name}`, () => {
+      cell(0, 0).focus()
+      cell(0, 0).should('have.class', 'death')
+      cell(0, 0).should('have.attr', 'aria-pressed', 'false')
+
+      pressKey(key)
+      cell(0, 0).should('have.class', 'live')
+      cell(0, 0).should('have.attr', 'aria-pressed', 'true')
+      // Only that cell changed (the glider's 5 cells plus this one)
+      cy.get('.box.live').should('have.length', 6)
+
+      pressKey(key)
+      cell(0, 0).should('have.class', 'death')
+      cell(0, 0).should('have.attr', 'aria-pressed', 'false')
+      cy.get('.box.live').should('have.length', 5)
+      cy.focused().should('have.attr', 'aria-label', 'Row 1, column 1')
+    })
+  }
+
   it('should restore a shared board from the link', () => {
     // A 4x3 glider (see src/utils/share.ts for the format)
     cy.visit('/#w=4&h=3&c=QuA')

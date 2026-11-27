@@ -524,6 +524,90 @@ describe('LifeGame.vue', () => {
       }
     })
 
+    it('drops the hash once the shared board is edited', async () => {
+      window.history.replaceState(null, '', '/?x=1#w=4&h=3&c=QuA')
+      const wrapper = mountLifeGame()
+      await wrapper.vm.$nextTick()
+      expect(window.location.hash).toBe('#w=4&h=3&c=QuA')
+
+      await wrapper.findAll('.box')[0].trigger('pointerdown')
+      window.dispatchEvent(new Event('pointerup'))
+      expect(window.location.hash).toBe('')
+      // Only the hash goes; the path and query stay
+      expect(window.location.pathname + window.location.search).toBe('/?x=1')
+      // Dropping it doesn't reload the board through hashchange
+      expect(liveIndexes(wrapper)).toEqual([0, 1, 6, 8, 9, 10])
+    })
+
+    it.each([
+      [
+        'Step',
+        (wrapper: ReturnType<typeof mountLifeGame>) =>
+          wrapper
+            .findAll('button')
+            .find((b) => b.text() === 'Step')!
+            .trigger('click'),
+      ],
+      [
+        'Random',
+        (wrapper: ReturnType<typeof mountLifeGame>) =>
+          wrapper
+            .findAll('button')
+            .find((b) => b.text() === 'Random')!
+            .trigger('click'),
+      ],
+      [
+        'Clear',
+        (wrapper: ReturnType<typeof mountLifeGame>) =>
+          wrapper
+            .findAll('button')
+            .find((b) => b.text() === 'Clear')!
+            .trigger('click'),
+      ],
+      [
+        'a resize',
+        async (wrapper: ReturnType<typeof mountLifeGame>) => {
+          const input = wrapper.findAll('input[type="number"]')[0]
+          await input.setValue('5')
+          await input.trigger('change')
+        },
+      ],
+    ])('drops the hash after %s', async (_, act) => {
+      window.history.replaceState(null, '', '/#w=4&h=3&c=QuA')
+      const wrapper = mountLifeGame()
+      await wrapper.vm.$nextTick()
+      await act(wrapper)
+      expect(window.location.hash).toBe('')
+    })
+
+    it('keeps the hash when the same size is committed', async () => {
+      window.history.replaceState(null, '', '/#w=4&h=3&c=QuA')
+      const wrapper = mountLifeGame()
+      await wrapper.vm.$nextTick()
+      await wrapper.findAll('input[type="number"]')[0].trigger('change')
+      expect(window.location.hash).toBe('#w=4&h=3&c=QuA')
+    })
+
+    it('drops the copied hash once the board changes', async () => {
+      stubClipboard(vi.fn().mockResolvedValue(undefined))
+      try {
+        const wrapper = mountLifeGame()
+        await wrapper
+          .findAll('button')
+          .find((b) => b.text() === 'Copy link')!
+          .trigger('click')
+        await flushPromises()
+        expect(window.location.hash).not.toBe('')
+        await wrapper
+          .findAll('button')
+          .find((b) => b.text() === 'Step')!
+          .trigger('click')
+        expect(window.location.hash).toBe('')
+      } finally {
+        delete (navigator as { clipboard?: unknown }).clipboard
+      }
+    })
+
     it('says so when the clipboard is unavailable', async () => {
       stubClipboard(vi.fn().mockRejectedValue(new Error('denied')))
       try {

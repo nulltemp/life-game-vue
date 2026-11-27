@@ -62,6 +62,17 @@
     font-weight: 700;
   }
 }
+/* The AboutGame headings (font-weight-bold still wins: typography comes
+   before helpers in Vuetify's layer order) */
+@layer vuetify-utilities.typography {
+  .text-title-medium {
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0.009375em;
+    font-family: var(--v-font-body, 'Roboto', sans-serif);
+  }
+}
 /* The Start/Stop button's color="red" (not a theme color, so Vuetify uses .bg-red) */
 @layer vuetify-utilities.theme-background {
   .bg-red {

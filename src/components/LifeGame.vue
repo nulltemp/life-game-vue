@@ -206,7 +206,7 @@ const paintCell = (i: number, j: number, value: number) => {
     return
   }
   isUnchanging.value = false
-  copyMessage.value = ''
+  boardChanged()
   dataMap.value[i][j] = value
 }
 
@@ -320,17 +320,18 @@ onUnmounted(() => {
 
 const changeDataMapSize = () => {
   isUnchanging.value = false
-  copyMessage.value = ''
   width.value = clampSize(width.value, dataMap.value[0].length)
   height.value = clampSize(height.value, dataMap.value.length)
 
   // A resize changes the board (cells may be cut off), so restart the count
-  // like Random and Clear do; committing the same size keeps it
+  // like Random and Clear do; committing the same size keeps it (and the
+  // copied link, which still matches)
   if (
     width.value !== dataMap.value[0].length ||
     height.value !== dataMap.value.length
   ) {
     generation.value = 0
+    boardChanged()
   }
 
   if (width.value !== dataMap.value[0].length) {
@@ -380,7 +381,7 @@ const step = (): boolean => {
     return false
   }
   isUnchanging.value = false
-  copyMessage.value = ''
+  boardChanged()
   dataMap.value = next
   generation.value++
   return true
@@ -444,7 +445,7 @@ onUnmounted(() => stopStatus())
 const randomize = () => {
   stopStatus()
   isUnchanging.value = false
-  copyMessage.value = ''
+  boardChanged()
   for (let i = 0; i < dataMap.value.length; i++) {
     for (let j = 0; j < dataMap.value[i].length; j++) {
       dataMap.value[i][j] = Math.random() < 0.5 ? 1 : 0
@@ -456,7 +457,7 @@ const randomize = () => {
 const clear = () => {
   stopStatus()
   isUnchanging.value = false
-  copyMessage.value = ''
+  boardChanged()
   for (let i = 0; i < dataMap.value.length; i++) {
     for (let j = 0; j < dataMap.value[i].length; j++) {
       dataMap.value[i][j] = 0
@@ -487,11 +488,30 @@ const loadSharedBoard = () => {
 // Announced in a role="status" line; cleared whenever the board changes
 const copyMessage = ref('')
 
+// Once the board differs from the one in the hash (a shared link, or Copy
+// link), drop the hash, so a reload or the address bar never brings back the
+// old board as if it were the current one (replaceState doesn't fire
+// hashchange). A reload then starts from the glider again
+const clearShareHash = () => {
+  if (!window.location.hash) {
+    return
+  }
+  const { pathname, search } = window.location
+  window.history.replaceState(window.history.state, '', pathname + search)
+}
+
+// Every edit, step, Random and Clear: the copied link no longer matches
+const boardChanged = () => {
+  copyMessage.value = ''
+  clearShareHash()
+}
+
 const copyLink = async () => {
   const hash = encodeBoard(dataMap.value)
   const { origin, pathname, search } = window.location
   const url = `${origin}${pathname}${search}#${hash}`
-  // Keep the address bar in sync too, so a reload keeps the board
+  // Keep the address bar in sync too, so a reload keeps the board (until it
+  // changes: see clearShareHash)
   window.history.replaceState(window.history.state, '', `#${hash}`)
   try {
     await navigator.clipboard.writeText(url)

@@ -237,6 +237,16 @@ describe('Life Game E2E Tests', () => {
     cy.get('.box.live').should('have.length', 6)
   })
 
+  it('should drop the shared board from the URL once it is edited', () => {
+    cy.visit('/#w=4&h=3&c=QuA')
+    cy.get('.box').should('have.length', 12)
+    cy.get('.box').first().click()
+    cy.location('hash').should('equal', '')
+    // A reload no longer brings back the pre-edit board, but the glider
+    cy.reload()
+    cy.get('.box').should('have.length', 100)
+  })
+
   it('should have working GitHub link', () => {
     cy.get('a[href*="github.com"]').should('have.attr', 'target', '_blank')
   })

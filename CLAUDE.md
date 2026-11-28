@@ -14,7 +14,7 @@ This project uses `npm` (`package-lock.json` is the only lockfile).
 - `npm run test:e2e:dev` — run Cypress against the Vite dev server (interactive, opens Cypress UI)
 - `npm run test:e2e` — run Cypress headless against the preview server (run `npm run build` first)
 - `npm run lint` — `eslint . --fix` (flat config in `eslint.config.mjs`, includes Prettier)
-- `npm run type-check` — `vue-tsc --noEmit` only
+- `npm run type-check` — `vue-tsc --noEmit` only, on three projects in parallel (`run-p`): `type-check:app` (`tsconfig.vitest.json`: `env.d.ts`, `src/` and its unit tests), `type-check:config` (`tsconfig.config.json`: `vite.config.ts` and `cypress.config.ts`; `skipLibCheck` is on, since `node_modules` types such as `@types/chai` vs Cypress's bundled chai conflict otherwise) and `type-check:e2e` (`cypress/e2e/tsconfig.json`: the Cypress specs and `cypress/support/`; Cypress itself runs specs with type errors, so this is the only check)
 
 ## Architecture
 

@@ -331,6 +331,16 @@ describe('Life Game E2E Tests', () => {
     cy.get('.box').should('have.length', 100)
   })
 
+  it('should have a noindex not-found page', () => {
+    cy.visit('/404.html')
+    cy.get('meta[name="robots"]').should('have.attr', 'content', 'noindex')
+    cy.contains('a', "Go to Conway's Game of Life").should(
+      'have.attr',
+      'href',
+      '/',
+    )
+  })
+
   it('should have working GitHub link', () => {
     cy.get('a[href*="github.com"]').should('have.attr', 'target', '_blank')
   })

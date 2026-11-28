@@ -250,14 +250,17 @@ describe('Life Game E2E Tests', () => {
   // press) don't run the button's default action, the click (detail 0) that
   // toggles the cell. So press the keys through the Chrome DevTools Protocol,
   // which the browser treats as real input (Chromium-family browsers only,
-  // like Cypress's default Electron)
+  // like Cypress's default Electron). Cypress.automation() sends the command
+  // as soon as it's called, so call it inside cy.then() to run it in queue
+  // order (after the focus() before it), not while the test body is queueing
+  // the commands
   const pressKey = (key: 'Enter' | ' ') => {
     const keyEvent = {
       key,
       code: key === ' ' ? 'Space' : 'Enter',
       windowsVirtualKeyCode: key === ' ' ? 32 : 13,
     }
-    cy.wrap(
+    cy.then(() =>
       Cypress.automation('remote:debugger:protocol', {
         command: 'Input.dispatchKeyEvent',
         params: {
@@ -267,7 +270,7 @@ describe('Life Game E2E Tests', () => {
         },
       }),
     )
-    cy.wrap(
+    cy.then(() =>
       Cypress.automation('remote:debugger:protocol', {
         command: 'Input.dispatchKeyEvent',
         params: { type: 'keyUp', ...keyEvent },

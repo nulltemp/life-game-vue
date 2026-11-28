@@ -12,7 +12,10 @@
     "test:e2e": "start-server-and-test \"vite preview --host 127.0.0.1 --port 4173 --strictPort\" http://127.0.0.1:4173 \"cypress run --e2e\"",
     "test:e2e:dev": "start-server-and-test \"vite dev --host 127.0.0.1 --port 4173 --strictPort\" http://127.0.0.1:4173 \"cypress open --e2e\"",
     "build-only": "vite build",
-    "type-check": "vue-tsc --noEmit -p tsconfig.vitest.json --composite false",
+    "type-check": "run-p type-check:app type-check:config type-check:e2e",
+    "type-check:app": "vue-tsc --noEmit -p tsconfig.vitest.json --composite false",
+    "type-check:config": "vue-tsc --noEmit -p tsconfig.config.json --composite false",
+    "type-check:e2e": "vue-tsc --noEmit -p cypress/e2e/tsconfig.json",
     "lint": "eslint . --fix"
   },
   "dependencies": {
